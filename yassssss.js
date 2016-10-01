@@ -28,7 +28,6 @@ function get_image(image_url) {
                 }
                 var steps = Math.floor((Math.log(target_longest / current_longest) / Math.log(factor)));
 
-
                 var pre_canvas = document.createElement('canvas');
                 var pre_ctx = pre_canvas.getContext('2d');
                 var width = pre_canvas.width = img_el.width;
