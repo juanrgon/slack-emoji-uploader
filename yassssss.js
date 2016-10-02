@@ -2,6 +2,8 @@
 //img_url = 'https://i.imgur.com/CAUyU1v.jpg'; // (American Psycho)
 //img_url = 'https://i.imgur.com/IJmuA62.gif'; // (Elmo)
 //img_url = 'https://i.imgur.com/Kb9bVR1.jpg;' // (dat boi)
+//img_url = 'https://i.imgur.com/TUo28GM.jpg' // (high def tiger)
+// img_url = 'http://i.imgur.com/JcVrUXr.jpg' // (mickey mouse)
 img_url = 'http://i.imgur.com/VpzJT2h.gif' // (tiny icon)
 get_image(img_url);
 
