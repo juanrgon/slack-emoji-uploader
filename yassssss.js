@@ -1,7 +1,8 @@
 // img_url = 'https://i.imgur.com/SHo6Fub.jpg'; // (Mountain)
-img_url = 'https://i.imgur.com/CAUyU1v.jpg'; // (American Psycho)
+//img_url = 'https://i.imgur.com/CAUyU1v.jpg'; // (American Psycho)
 //img_url = 'https://i.imgur.com/IJmuA62.gif'; // (Elmo)
 //img_url = 'https://i.imgur.com/Kb9bVR1.jpg;' // (dat boi)
+img_url = 'http://i.imgur.com/VpzJT2h.gif' // (tiny icon)
 get_image(img_url);
 
 function get_image(image_url) {
