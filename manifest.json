@@ -1,20 +1,18 @@
 {
   "background": {
-    "scripts": [
-      "background.js"
-    ]
+    "scripts": ["background.js"]
   },
-  "description": "Create and add emojis to your slack team!",
+  "description": "Add emojis to your slack team!",
   "icons": {
     "128": "slack.png"
   },
   "manifest_version": 2,
   "minimum_chrome_version": "18",
   "name": "Slack Emoji Uploader",
-  "permissions": [
-    "contextMenus",
-    "tabs",
-    "https://*.slack.com/"
-  ],
+  "permissions": ["contextMenus", "storage", "https://*.slack.com/", "http://*/*", "https://*/*"],
+  "options_ui": {
+    "page": "options.html",
+    "chrome_style": true
+  },
   "version": "0.0.1"
 }
