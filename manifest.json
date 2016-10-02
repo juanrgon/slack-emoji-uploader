@@ -5,7 +5,9 @@
     ]
   },
   "description": "Create and add emojis to your slack team!",
-  "icons": {"128": "slack.png"},
+  "icons": {
+    "128": "slack.png"
+  },
   "manifest_version": 2,
   "minimum_chrome_version": "18",
   "name": "Slack Emoji Uploader",
@@ -14,5 +16,5 @@
     "tabs",
     "https://*.slack.com/"
   ],
-  "version": "0.12"
+  "version": "0.0.1"
 }
