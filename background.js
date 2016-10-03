@@ -5,18 +5,45 @@ chrome.contextMenus.create({
 });
 
 function slack_add_emoji(info, tab) {
-	var emoji_name = prompt("Give your emoji a name:");
-	if (emoji_name !== '') {
+	var emoji_name = null;
+	var prompt_message = "Give your emoji a name."
+	do {
+		var emoji_name = prompt(prompt_message);
+		if (emoji_name === '') {
+			prompt_message = "Emoji name can't be blank! Try again.";
+		}
+	} while (emoji_name === '');
+	if (emoji_name !== null) {
+		emoji_name = remove_whitespace(emoji_name);
 		console.log('Emoji name:' + emoji_name);
-		var valid_name = validate_emoji_name();
-		var image_url = info.srcUrl;
-		upload_image(image_url, emoji_name);
+		var valid_name = validate_emoji_name(emoji_name);
+		if (!valid_name) {
+			alert('"' + emoji_name + '" is an invalid name. Only letters, numbers, dashes, spaces, and underscores.');
+		} else {
+			var image_url = info.srcUrl;
+			upload_image(image_url, emoji_name);
+		}
 	}
 }
 
-function validate_emoji_name() {
-	//TODO
-	return true;
+function remove_whitespace(emoji_name) {
+	parts = emoji_name.split(' ');
+	new_parts = []
+	for (i = 0; i < parts.length; i++) {
+		if (parts[i] !== '') {
+			new_parts[i] = parts[i];
+		}
+	}
+	return new_parts.join('-');
+}
+
+function validate_emoji_name(emoji_name) {
+	var re = '^[a-zA-Z0-9-_]*$'
+	if (emoji_name.match(re) === null) {
+		return false;
+	} else {
+		return true;
+	}
 }
 
 function upload_image(image_url, emoji_name) {
@@ -96,53 +123,58 @@ function upload_emoji(emoji_name, emoji_blob) {
 		team_domain: null,
 	}, function (items) {
 		var slack_team_domain = items.team_domain;
-		console.log('slack team: ' + slack_team_domain);
-		var emoji_cust_url = 'https://' + slack_team_domain + '.slack.com/customize/emoji';
-		var get_xhr = new XMLHttpRequest();
-		get_xhr.open("GET", emoji_cust_url, true);
-		get_xhr.responseType = 'document';
-		get_xhr.onreadystatechange = function () {
-			if (get_xhr.readyState == XMLHttpRequest.DONE) {
-				if (get_xhr.status != 200) {
-					alert('Cannot reach the emoji customization page of ' + slack_team_domain + '.');
-				} else {
-					emoji_page = get_xhr.response;
-					upload_form = emoji_page.getElementById('addemoji');
-					inputs = upload_form.getElementsByTagName('input');
-					for (var i = 0; i < inputs.length; i++) {
-						input = inputs[i];
-						if (input.name == 'crumb') {
-							crumb = input.value;
-							break;
-						}
-					}
-					console.log(crumb);
-					if (crumb !== undefined) {
-						var post_xhr = new XMLHttpRequest();
-						post_xhr.open("POST", emoji_cust_url, true);
-						post_xhr.responseType = 'document';
-						var form_data = new FormData();
-						form_data.append('name', emoji_name);
-						form_data.append('img', emoji_blob);
-						form_data.append('mode', 'data');
-						form_data.append('add', '1');
-						form_data.append('crumb', crumb);
-						post_xhr.onreadystatechange = function () {
-							if (post_xhr.readyState == XMLHttpRequest.DONE) {
-								results = analyze_slack_response(post_xhr.response);
-								if (results !== 'Success') {
-									alert('Upload failed: ' + results);
-								} else {
-									console.log('Uploaded Image!');
-								}
+		console.log(slack_team_domain === null);
+		if (slack_team_domain === '') {
+			alert('Oops. No Slack team was entered.');
+			chrome.runtime.openOptionsPage();
+		} else {
+			var emoji_cust_url = 'https://' + slack_team_domain + '.slack.com/customize/emoji';
+			var get_xhr = new XMLHttpRequest();
+			get_xhr.open("GET", emoji_cust_url, true);
+			get_xhr.responseType = 'document';
+			get_xhr.onreadystatechange = function () {
+				if (get_xhr.readyState == XMLHttpRequest.DONE) {
+					if (get_xhr.status != 200) {
+						alert('Cannot reach the emoji customization page of ' + slack_team_domain + '.');
+					} else {
+						emoji_page = get_xhr.response;
+						upload_form = emoji_page.getElementById('addemoji');
+						inputs = upload_form.getElementsByTagName('input');
+						for (var i = 0; i < inputs.length; i++) {
+							input = inputs[i];
+							if (input.name == 'crumb') {
+								crumb = input.value;
+								break;
 							}
 						}
-						post_xhr.send(form_data);
+						console.log(crumb);
+						if (crumb !== undefined) {
+							var post_xhr = new XMLHttpRequest();
+							post_xhr.open("POST", emoji_cust_url, true);
+							post_xhr.responseType = 'document';
+							var form_data = new FormData();
+							form_data.append('name', emoji_name);
+							form_data.append('img', emoji_blob);
+							form_data.append('mode', 'data');
+							form_data.append('add', '1');
+							form_data.append('crumb', crumb);
+							post_xhr.onreadystatechange = function () {
+								if (post_xhr.readyState == XMLHttpRequest.DONE) {
+									results = analyze_slack_response(post_xhr.response);
+									if (results !== 'Success') {
+										alert('Upload failed: ' + results);
+									} else {
+										alert('Added the ' + emoji_name + ' emoji!');
+									}
+								}
+							}
+							post_xhr.send(form_data);
+						}
 					}
 				}
 			}
+			get_xhr.send();
 		}
-		get_xhr.send();
 	});
 }
 
