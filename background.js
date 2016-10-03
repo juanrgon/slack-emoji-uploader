@@ -125,7 +125,7 @@ function upload_emoji(emoji_name, emoji_blob) {
     }, function (items) {
         var slack_team_domain = items.team_domain;
         console.log(slack_team_domain === null);
-        if (slack_team_domain === '') {
+        if (slack_team_domain === null) {
             alert('Oops. No Slack team was entered.');
             chrome.runtime.openOptionsPage();
         } else {
