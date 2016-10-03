@@ -1,3 +1,3 @@
-# Slack Emoji Chrome Extension
+# Chrome Extension for Custom Slack Emoji
 
-Chrome extension to add emojis to your slack team! :tada:
+Chrome extension to make custom emojis in a snap! :tada:
