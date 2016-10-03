@@ -29,13 +29,23 @@ function validate_team(team_domain) {
   var status = document.getElementById('team_status');
   status.textContent = ''
   var xhr = new XMLHttpRequest();
-  team_url = 'https://' + team_domain + '.slack.com'
+  team_url = 'https://' + team_domain + '.slack.com/customize/emoji'
   xhr.open('GET', team_url, true);
   xhr.onreadystatechange = function () {
     if (xhr.readyState == XMLHttpRequest.DONE) {
-      console.log(xhr.status === 404);
+      console.log(xhr.status);
       if (xhr.status === 200) {
-        return true;
+        console.log(xhr.responseURL);
+        if (team_url !== xhr.responseURL) {
+          chrome.tabs.create({
+            url: 'https://' + team_domain + '.slack.com'
+          });
+          status.textContent = 'Login in to team in another tab';
+          status.style.color = 'red';
+          return false;
+        } else {
+          return true;
+        }
       } else {
         status.textContent = 'Unreachable: ' + xhr.status;
         status.style.color = 'red';
