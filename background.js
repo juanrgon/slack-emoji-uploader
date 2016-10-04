@@ -3,6 +3,11 @@ chrome.contextMenus.create({
 	contexts: ["image"],
 	"onclick": slack_add_emoji
 });
+chrome.runtime.onInstalled.addListener(function (details) {
+	if (details.reason == 'install') {
+		chrome.runtime.openOptionsPage();
+	}
+});
 
 function slack_add_emoji(info, tab) {
 	var emoji_name = null;
