@@ -14,12 +14,13 @@ function slack_add_emoji(info, tab) {
 		}
 	} while (emoji_name === '');
 	if (emoji_name !== null) {
-		emoji_name = remove_whitespace(emoji_name);
-		console.log('Emoji name:' + emoji_name);
 		var valid_name = validate_emoji_name(emoji_name);
 		if (!valid_name) {
 			alert('"' + emoji_name + '" is an invalid name. Only letters, numbers, dashes, spaces, and underscores.');
 		} else {
+			emoji_name = remove_whitespace(emoji_name);
+			emoji_name = emoji_name.toLowerCase();
+			console.log('Emoji name:' + emoji_name);
 			var image_url = info.srcUrl;
 			upload_image(image_url, emoji_name);
 		}
