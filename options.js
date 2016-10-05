@@ -40,7 +40,7 @@ function validate_team(team_domain) {
           chrome.tabs.create({
             url: 'https://' + team_domain + '.slack.com'
           });
-          status.textContent = 'Login in to team in another tab';
+          status.textContent = 'Login to team in another tab';
           status.style.color = 'red';
           return false;
         } else {
