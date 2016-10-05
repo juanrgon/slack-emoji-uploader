@@ -251,36 +251,40 @@ function upload_emoji(emoji_name, emoji_blob) {
 					} {
 						emoji_page = get_xhr.response;
 						upload_form = emoji_page.getElementById('addemoji');
-						inputs = upload_form.getElementsByTagName('input');
-						for (var i = 0; i < inputs.length; i++) {
-							input = inputs[i];
-							if (input.name == 'crumb') {
-								crumb = input.value;
-								break;
-							}
-						}
-						console.log(crumb);
-						if (crumb !== undefined) {
-							var post_xhr = new XMLHttpRequest();
-							post_xhr.open("POST", emoji_cust_url, true);
-							post_xhr.responseType = 'document';
-							var form_data = new FormData();
-							form_data.append('name', emoji_name);
-							form_data.append('img', emoji_blob);
-							form_data.append('mode', 'data');
-							form_data.append('add', '1');
-							form_data.append('crumb', crumb);
-							post_xhr.onreadystatechange = function () {
-								if (post_xhr.readyState == XMLHttpRequest.DONE) {
-									results = analyze_slack_response(post_xhr.response);
-									if (results !== 'Success') {
-										alert('Upload failed: ' + results);
-									} else {
-										alert('Added the ' + emoji_name + ' emoji!');
-									}
+						if (upload_form === null) {
+							alert("You can't upload custom emojis. Your admin has restricted you :(")
+						} else {
+							inputs = upload_form.getElementsByTagName('input');
+							for (var i = 0; i < inputs.length; i++) {
+								input = inputs[i];
+								if (input.name == 'crumb') {
+									crumb = input.value;
+									break;
 								}
 							}
-							post_xhr.send(form_data);
+							console.log(crumb);
+							if (crumb !== undefined) {
+								var post_xhr = new XMLHttpRequest();
+								post_xhr.open("POST", emoji_cust_url, true);
+								post_xhr.responseType = 'document';
+								var form_data = new FormData();
+								form_data.append('name', emoji_name);
+								form_data.append('img', emoji_blob);
+								form_data.append('mode', 'data');
+								form_data.append('add', '1');
+								form_data.append('crumb', crumb);
+								post_xhr.onreadystatechange = function () {
+									if (post_xhr.readyState == XMLHttpRequest.DONE) {
+										results = analyze_slack_response(post_xhr.response);
+										if (results !== 'Success') {
+											alert('Upload failed: ' + results);
+										} else {
+											alert('Added the ' + emoji_name + ' emoji!');
+										}
+									}
+								}
+								post_xhr.send(form_data);
+							}
 						}
 					}
 				}
