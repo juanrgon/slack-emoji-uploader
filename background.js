@@ -68,7 +68,7 @@ function upload_image(image_url, emoji_name) {
 			upload_emoji(emoji_name, emoji_blob);
 		});
 	};
-	if (url_parser.protocol == 'data:') {
+	if ((url_parser.protocol == 'data:') || (url_parser.protocol == 'file:')) {
 		console.log("Interpreting data url.");
 		img_el.src = image_url;
 	} else {
