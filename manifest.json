@@ -9,9 +9,7 @@
   "manifest_version": 2,
   "minimum_chrome_version": "18",
   "name": "Slack Emoji Uploader",
-  "permissions": ["contextMenus", "storage", "https://*.slack.com/", "http://*/*", "https://*/*",
-    "file://*/*"
-  ],
+  "permissions": ["contextMenus", "storage", "http://*/*", "https://*/*", "file://*/*"],
   "options_ui": {
     "page": "options.html",
     "chrome_style": true
