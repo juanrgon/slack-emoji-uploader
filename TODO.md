@@ -21,6 +21,7 @@
 
 #### Extension Design
 - [ ] No longer use prompts and alerts 
+- [ ] Show the popup when emoji is added to show what it looks like; include an undo button in the popup.
 - [ ] List team emojis from the extension popup page
 - [ ] Allow emoji removal from popup
 - [ ] Allow aliasing from popup
