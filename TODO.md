@@ -18,6 +18,7 @@
 - [ ] Allow emoji removal
 - [ ] Allow emoji aliasing
 - [ ] Allow emoji renaming
+- [ ] Show new emojis notification symbol in slack icon (Maybe)
 
 #### Extension Design
 - [ ] No longer use prompts and alerts 
