@@ -2,7 +2,7 @@
   "background": {
     "scripts": ["background.js"]
   },
-  "description": "Add emojis to your slack team!",
+  "description": "Add emojis to slack!",
   "icons": {
     "128": "slack.png"
   },
