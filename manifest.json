@@ -12,11 +12,11 @@
   "manifest_version": 2,
   "minimum_chrome_version": "18",
   "name": "Slack Emoji Uploader",
-  "permissions": ["contextMenus", "storage", "http://*/*", "https://*/*", "file://*/*"],
+  "permissions": ["contextMenus", "storage", "notifications", "http://*/*", "https://*/*", "file://*/*"],
   "options_ui": {
     "page": "options.html",
     "chrome_style": true
   },
-  "version": "1.1.6",
+  "version": "1.1.7",
   "minimum_chrome_version": "50.0.0.0"
 }

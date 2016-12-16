@@ -303,11 +303,25 @@ function upload_emoji(emoji_name, emoji_blob) {
 											alert_internet_disconnect();
 										} else {
 											results = analyze_slack_response(post_xhr.response);
-											if (results !== 'Success') {
-												alert('Upload failed: ' + results);
+											var msg;
+											var title;
+											var iconUrl;
+											if (results == 'Success') {
+												title = 'Success!';
+												msg = 'Added the ' + emoji_name + ' emoji!';
+												iconUrl = URL.createObjectURL(emoji_blob);
 											} else {
-												alert('Added the ' + emoji_name + ' emoji!');
+												title = 'Failure';
+												msg = 'Upload failed: ' + results;
+												iconUrl = "slack.png";
 											}
+											var opt = {
+												type: "basic",
+												title: title,
+												message: msg,
+												iconUrl: iconUrl
+											};
+											chrome.notifications.create(undefined, opt);
 										}
 									}
 								}
