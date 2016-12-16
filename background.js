@@ -192,12 +192,12 @@ function emoji_dimensions(width, height) {
 	const MAX_SIDE_LENGTH = 128;
 	// Get the larger side
 	long_side = Math.max(height, width);
-	// Determine the scale ratio
-	scale = MAX_SIDE_LENGTH / long_side;
 	// If the image is between 95% to 100% of the target
 	// emoji size, don't adjust it's size.
-	if ((scale <= (1 / 0.95)) && (scale >= 1)) {
+	if ((long_side >= 0.95 * MAX_SIDE_LENGTH) && (long_side <= MAX_SIDE_LENGTH)) {
 		scale = 1;
+	} else {
+		scale = MAX_SIDE_LENGTH / long_side;
 	}
 	return {
 		'height': height * scale,
