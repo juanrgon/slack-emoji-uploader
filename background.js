@@ -313,7 +313,7 @@ function upload_emoji(emoji_name, emoji_blob) {
 											} else {
 												title = 'Failure';
 												msg = 'Upload failed: ' + results;
-												iconUrl = "slack.png";
+												iconUrl = "failure.png";
 											}
 											var opt = {
 												type: "basic",
