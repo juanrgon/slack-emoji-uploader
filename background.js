@@ -8,6 +8,31 @@ chrome.runtime.onInstalled.addListener(function (details) {
 		chrome.runtime.openOptionsPage();
 	}
 });
+chrome.runtime.onMessage.addListener(function (request, sender) {
+	if (sender.tab) {
+		tab_url = sender.tab.url;
+		var re = '^https://(www\.)?slackmojis\.com/?.*$';
+		if (tab_url.match(re) !== null) {
+			console.log('Retrieved request to add emoji from ' + tab_url);
+			console.log('Request ' + JSON.stringify(request));
+			xhr = new XMLHttpRequest();
+			xhr.open('GET', request.emojiUrl, true);
+			xhr.responseType = 'blob';
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState == XMLHttpRequest.DONE) {
+					if (xhr.status === 0) {
+						alert_internet_disconnect();
+					} else {
+						console.log('Downloading slackmoji image.')
+						emoji_blob = xhr.response;
+						upload_emoji(request.emojiName, emoji_blob);
+					}
+				}
+			}
+			xhr.send();
+		}
+	}
+});
 
 function slack_add_emoji(info, tab) {
 	var emoji_name = null;
