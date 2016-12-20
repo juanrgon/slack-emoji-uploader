@@ -26,6 +26,7 @@
 #### Extension Design
 - [ ] No longer use prompts and alerts 
 - [x] Show a popup when emoji is added to show what it looks like (only the new emoji, not the full list)
+- [ ] Ask for alternative name for slackmoji emoji if name is taken
 - [ ] Bulk upload emojis from emojipacks.com
 - [ ] Include an undo button in the emoji upload notification.
 - [ ] List team emojis from the extension popup page
