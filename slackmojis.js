@@ -31,6 +31,7 @@ for (var i = 0; i < emojiButtons.length; i++) {
 	var emojiButton = emojiButtons[i];
 	emojiButton.removeAttribute("download");
 	emojiButton.setAttribute("href", "#");
+	emojiButton.setAttribute("onclick", "return false;")
 	emojiButton.addEventListener("click", function (event) {
 		addEmoji(event);
 	}, false);
