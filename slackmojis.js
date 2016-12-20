@@ -30,7 +30,7 @@ var emojiButtons = document.getElementsByClassName('downloader');
 for (var i = 0; i < emojiButtons.length; i++) {
 	var emojiButton = emojiButtons[i];
 	emojiButton.removeAttribute("download");
-	emojiButton.removeAttribute("href");
+	emojiButton.setAttribute("href", "#");
 	emojiButton.addEventListener("click", function (event) {
 		addEmoji(event);
 	}, false);
