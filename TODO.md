@@ -24,6 +24,7 @@
 - [ ] Show recent emojis added (Maybe cache all the emojis, with a refresh on demand)
 
 #### Extension Design
+- [ ] Allow drawing your own emoji
 - [ ] No longer use prompts and alerts 
 - [x] Show a popup when emoji is added to show what it looks like (only the new emoji, not the full list)
 - [ ] Ask for alternative name for slackmoji emoji if name is taken
