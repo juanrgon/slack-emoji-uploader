@@ -11,7 +11,7 @@ chrome.runtime.onInstalled.addListener(function (details) {
 chrome.runtime.onMessage.addListener(function (request, sender) {
 	if (sender.tab) {
 		tab_url = sender.tab.url;
-		var re = '^https://(www\.)?slackmojis\.com/?.*$';
+		var re = '^http(s)?://(www\.)?slackmojis\.com/?.*$';
 		if (tab_url.match(re) !== null) {
 			console.log('Retrieved request to add emoji from ' + tab_url);
 			console.log('Request ' + JSON.stringify(request));
