@@ -33,6 +33,12 @@ function save_options() {
       } else {
         status.textContent = 'Unreachable: ' + xhr.status;
         status.style.color = 'red';
+        var save_status = document.getElementById('settings_status');
+        save_status.textContent = 'Save failed.';
+        save_status.style.color = 'red';
+        setTimeout(function () {
+          save_status.textContent = '';
+        }, 750);
         return false;
       }
     }
