@@ -18,13 +18,15 @@
 - [ ] Allow emoji removal
 - [ ] Allow emoji aliasing
 - [ ] Allow emoji renaming
-- [ ] slackmojis are automatically uploaded by click. Verifies if you want to first, though.
-- [ ] Show a popup when emoji is added to show what it looks like (only the new emoji, not the full list); include an undo button in the popup.
+- [x] slackmojis are automatically uploaded by click. Verifies if you want to first, though.
+- [ ] Bulk upload emojis from emojipacks.com
+- [x] Show a popup when emoji is added to show what it looks like (only the new emoji, not the full list); include an undo button in the popup.
 - [ ] Show recent emojis added (Maybe cache all the emojis, with a refresh on demand)
 
 #### Extension Design
 - [ ] No longer use prompts and alerts 
 - [x] Show a popup when emoji is added to show what it looks like (only the new emoji, not the full list)
+- [ ] Bulk upload emojis from emojipacks.com
 - [ ] Include an undo button in the emoji upload notification.
 - [ ] List team emojis from the extension popup page
 - [ ] Allow emoji removal from popup
