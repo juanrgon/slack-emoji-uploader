@@ -38,4 +38,4 @@
 - [ ] Add help menu/page
 - [ ] Add better images for extension screenshots
 - [ ] Add better extension icon
-
+- [ ] Redirect to extensions page if trying to add emoji from file url but the extension does not have permission to do so
