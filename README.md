@@ -3,6 +3,9 @@
 # Chrome Extension for Custom Slack Emojis
 
 The best way to add custom slack emojis! :tada:
+
+Click [here](https://chrome.google.com/webstore/detail/slack-emoji-uploader/jfacjbibcobdehekkieokkloinlfdomg) to download the extension.
+
 ## Support on Beerpay
 Hey dude! Help me out for a couple of :beers:!
 
