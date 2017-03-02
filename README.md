@@ -6,7 +6,3 @@ The best way to add custom slack emojis! :tada:
 
 Click [here](https://chrome.google.com/webstore/detail/slack-emoji-uploader/jfacjbibcobdehekkieokkloinlfdomg) to download the extension.
 
-## Support on Beerpay
-Hey dude! Help me out for a couple of :beers:!
-
-[![Beerpay](https://beerpay.io/juanrgon/slack-emoji-uploader/badge.svg?style=beer-square)](https://beerpay.io/juanrgon/slack-emoji-uploader)  [![Beerpay](https://beerpay.io/juanrgon/slack-emoji-uploader/make-wish.svg?style=flat-square)](https://beerpay.io/juanrgon/slack-emoji-uploader?focus=wish)
