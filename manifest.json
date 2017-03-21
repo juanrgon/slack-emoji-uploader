@@ -1,27 +1,27 @@
 {
-  "background": {
-    "scripts": ["background.js"]
-  },
-  "description": "Add emojis to slack!",
-  "icons": {
-    "128": "slack.png"
-  },
-  "offline_enabled": false,
-  "browser_action": {
-    "default_popup": "popup.html"
-  },
-  "content_scripts": [{
-    "matches": ["https://*.slackmojis.com/*"],
-    "js": ["slackmojis.js"]
-  }],
-  "manifest_version": 2,
-  "minimum_chrome_version": "18",
-  "name": "Slack Emoji Uploader",
-  "permissions": ["contextMenus", "storage", "notifications", "http://*/*", "https://*/*", "file://*/*"],
-  "options_ui": {
-    "page": "options.html",
-    "chrome_style": true
-  },
-  "version": "1.2.3",
-  "minimum_chrome_version": "50.0.0.0"
+    "background": {
+        "scripts": ["background.js"]
+    },
+    "description": "Add emojis to slack!",
+    "icons": {
+        "128": "slack.png"
+    },
+    "offline_enabled": false,
+    "browser_action": {
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [{
+        "matches": ["https://*.slackmojis.com/*"],
+        "js": ["slackmojis.js"]
+    }],
+    "manifest_version": 2,
+    "minimum_chrome_version": "18",
+    "name": "Slack Emoji Uploader",
+    "permissions": ["contextMenus", "storage", "notifications", "http://*/*", "https://*/*", "file://*/*"],
+    "options_ui": {
+        "page": "options.html",
+        "chrome_style": true
+    },
+    "version": "1.2.3",
+    "minimum_chrome_version": "50.0.0.0"
 }
