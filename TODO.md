@@ -14,7 +14,8 @@
 
 #### New Features
 - [ ] Screenshot capture gifs
-- [ ] Support multiple teams
+- [x] Support multiple teams
+- Allow Upload to multiple teams at once
 - [ ] Allow emoji removal
 - [ ] Allow emoji aliasing
 - [ ] Allow emoji renaming
@@ -25,7 +26,7 @@
 
 #### Extension Design
 - [ ] Allow drawing your own emoji
-- [ ] No longer use prompts and alerts 
+- [ ] No longer use prompts and alerts
 - [x] Show a popup when emoji is added to show what it looks like (only the new emoji, not the full list)
 - [ ] Ask for alternative name for slackmoji emoji if name is taken
 - [ ] Bulk upload emojis from emojipacks.com
@@ -34,7 +35,7 @@
 - [ ] Allow emoji removal from popup
 - [ ] Allow aliasing from popup
 - [ ] Allow renaming from popup
-- [ ] Allow multiple teams
+- [x] Allow multiple teams
 - [ ] Add help menu/page
 - [ ] Add better images for extension screenshots
 - [ ] Add better extension icon
