@@ -1,0 +1,19 @@
+.remove-icon {
+    cursor: pointer;
+}
+
+.team-input+.team-input {
+    margin-top: 5px;
+}
+
+#header-msg {
+    margin-bottom: 15px;
+}
+
+#button-section {
+    margin-top: 15px;
+}
+
+button {
+    display: inline
+}

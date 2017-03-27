@@ -1,11 +1,65 @@
-chrome.contextMenus.create({
-	title: "Add as an emoji to slack",
-	contexts: ["image"],
-	"onclick": slack_add_emoji
+chrome.storage.sync.get({'teamDomains': null}, function(items) {
+	let teams = items.teamDomains;
+	console.log('Slack Teams', teams);
+	if (teams === null) {
+		chrome.contextMenus.create({
+			'title': 'Add emoji to slack',
+			'contexts': ['image'],
+			'onclick': alertNoTeamEntered,
+		});
+	} else {
+		updateRightClickMenu(teams);
+	}
 });
-chrome.runtime.onInstalled.addListener(function (details) {
+
+/**
+* Redirects to the extension options page to enter a team
+*/
+function alertNoTeamEntered() {
+	alert('Oops. No Slack team was entered.');
+	chrome.runtime.openOptionsPage();
+}
+
+function updateRightClickMenu(teams) {
+	chrome.contextMenus.removeAll();
+  for (i = 0; i < teams.length; i++) {
+    let team = teams[i];
+    console.log('adding menu', team);
+    chrome.contextMenus.create({
+      'title': 'Add emoji to ' + team,
+      'contexts': ['image'],
+      'id': team,
+      'onclick': slack_add_emoji,
+    });
+  }
+}
+
+chrome.runtime.onInstalled.addListener(function(details) {
 	if (details.reason == 'install') {
 		chrome.runtime.openOptionsPage();
+	} else if(details.reason == 'update') {
+		let prevVersionString = details.previousVersion;
+		let versionString = chrome.runtime.getManifest().version;
+
+		let [major, minor, patch] = versionString.split('.');
+		let [pMajor, pMinor, pPatch] = prevVersionString.split('.');
+
+		let pInt = parseInt;
+		let version = [pInt(major), pInt(minor), pInt(patch)];
+		let previousVersion = [pInt(pMajor), pInt(pMinor), pInt(pPatch)];
+
+		// structure of slack team name storage changed in 1.3.0
+		if (previousVersion < [1, 3, 0] && version >= [1, 3, 0]) {
+			chrome.storage.sync.get({'team_domain': null}, function(items) {
+				if (items.team_domain !== null) {
+					chrome.storage.sync.set({'teamDomains': [items.team_domain]});
+				}
+				chrome.storage.sync.remove('team_domain');
+			});
+
+			alert('Slack Emoji Uploader now supports multiple teams!');
+			chrome.runtime.openOptionsPage();
+		}
 	}
 });
 chrome.runtime.onMessage.addListener(function (request, sender) {
@@ -18,19 +72,30 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
 			xhr = new XMLHttpRequest();
 			xhr.open('GET', request.emojiUrl, true);
 			xhr.responseType = 'blob';
-			xhr.onreadystatechange = function () {
+			xhr.onreadystatechange = function() {
 				if (xhr.readyState == XMLHttpRequest.DONE) {
 					if (xhr.status === 0) {
 						alert_internet_disconnect();
 					} else {
 						console.log('Downloading slackmoji image.')
 						emoji_blob = xhr.response;
-						upload_emoji(request.emojiName, emoji_blob);
+						chrome.storage.sync.get({'teamDomains': null}, function(items) {
+							let teams = items.teamDomains;
+							if (teams !== null) {
+								for (let i=0; i < teams.length; i++) {
+									let teamName = teams[i];
+									upload_emoji(teamName, request.emojiName, emoji_blob);
+								}
+							}
+						});
 					}
 				}
 			}
 			xhr.send();
 		}
+	}
+	else {
+		updateRightClickMenu(request);
 	}
 });
 
@@ -54,7 +119,8 @@ function slack_add_emoji(info, tab) {
 			emoji_name = emoji_name.toLowerCase();
 			console.log('Emoji name:' + emoji_name);
 			var image_url = info.srcUrl;
-			upload_image(image_url, emoji_name);
+			let teamName = info.menuItemId;
+			upload_image(teamName, image_url, emoji_name);
 		}
 	}
 }
@@ -80,7 +146,7 @@ function validate_emoji_name(emoji_name) {
 	}
 }
 
-function upload_image(image_url, emoji_name) {
+function upload_image(teamName, image_url, emoji_name) {
 	url_parser = document.createElement('a');
 	url_parser.href = image_url;
 	var img_el = document.createElement('img');
@@ -90,10 +156,18 @@ function upload_image(image_url, emoji_name) {
 		emoji_sized_canvas = emoji_sized(canvas);
 		emoji_sized_canvas.toBlob(function (emoji_blob) {
 			console.log('canvas is now a blob');
-			upload_emoji(emoji_name, emoji_blob);
+			upload_emoji(teamName, emoji_name, emoji_blob);
 		});
 	};
 	if ((url_parser.protocol == 'data:') || (url_parser.protocol == 'file:')) {
+		if (url_parser.protocol === 'file:'){
+			chrome.extension.isAllowedFileSchemeAccess(function(isAllowedAccess){
+				if (!isAllowedAccess) {
+					alert('You must check "Allow access to file URLs" to upload local images opened in chrome.');
+					chrome.runtime.openOptionsPage();
+				}
+			});
+		}
 		console.log("Interpreting data url.");
 		img_el.src = image_url;
 	} else {
@@ -196,7 +270,7 @@ function shrink_gif_3rd_party(emoji_name, img_blob) {
 									} else {
 										console.log('Downloading resized gif.')
 										emoji_blob = get_xhr.response;
-										upload_emoji(emoji_name, emoji_blob);
+										upload_emoji(teamName, emoji_name, emoji_blob);
 									}
 								}
 							}
@@ -270,11 +344,8 @@ function emoji_sized(canvas) {
 	}
 }
 
-function upload_emoji(emoji_name, emoji_blob) {
-	chrome.storage.sync.get({
-		team_domain: null,
-	}, function (items) {
-		var slack_team_domain = items.team_domain;
+function upload_emoji(teamName, emoji_name, emoji_blob) {
+		var slack_team_domain = teamName;
 		console.log(slack_team_domain === null);
 		if (slack_team_domain === null) {
 			alert('Oops. No Slack team was entered.');
@@ -333,11 +404,11 @@ function upload_emoji(emoji_name, emoji_blob) {
 											var iconUrl;
 											if (results == 'Success') {
 												title = 'Success!';
-												msg = 'Added the ' + emoji_name + ' emoji!';
+												msg = 'Added the ' + emoji_name + ' emoji to ' + teamName + '!';
 												iconUrl = URL.createObjectURL(emoji_blob);
 											} else {
 												title = 'Failure';
-												msg = 'Upload failed: ' + results;
+												msg = 'Upload to '+ teamName + ' failed: ' + results;
 												iconUrl = "failure.png";
 											}
 											var opt = {
@@ -358,7 +429,6 @@ function upload_emoji(emoji_name, emoji_blob) {
 			}
 			get_xhr.send();
 		}
-	});
 }
 
 function analyze_slack_response(response) {
