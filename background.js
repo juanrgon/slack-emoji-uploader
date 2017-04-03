@@ -182,7 +182,7 @@ function upload_image(teamName, image_url, emoji_name) {
 					img_blob = xhr.response;
 					img_type = img_blob.type;
 					if (img_type === 'image/gif') {
-						shrink_gif_3rd_party(emoji_name, img_blob);
+						shrink_gif_3rd_party(teamName, emoji_name, img_blob);
 					} else {
 						img_el.src = URL.createObjectURL(img_blob);
 					}
@@ -198,7 +198,7 @@ function alert_internet_disconnect() {
 	alert("Woah. I got disconnected from the internet. Are you sure you're connected?");
 }
 
-function shrink_gif_3rd_party(emoji_name, img_blob) {
+function shrink_gif_3rd_party(teamName, emoji_name, img_blob) {
 	console.log('Going to shrink gif.')
 	var form_1_data = new FormData();
 	form_1_data.append('new-image', img_blob);
