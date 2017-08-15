@@ -23,7 +23,7 @@
 - [ ] Bulk upload emojis from emojipacks.com
 	- [x] Show a popup when emoji is added to show what it looks like (only the new emoji, not the full list); include an undo button in the popup.
 - [ ] Show recent emojis added (Maybe cache all the emojis, with a refresh on demand)
-	- Subscribe for notifications of new emojis
+	- [ ] Subscribe for notifications of new emojis
 
 #### Extension Design
 	- [ ] Allow drawing your own emoji
