@@ -1,3 +1,5 @@
+import * as Errors from '../errors/Emoji';
+
 export default class Emoji {
     name: string
     blob: Blob
@@ -20,12 +22,7 @@ export default class Emoji {
         else if (url.protocol.match(/https?:/)) {
             blob = await Emoji.httpUrlToBlob(urlString);
         }
-        else {
-            throw {
-                name: 'invalid-emoji-url-protocol',
-                message: `Invalid emoji url protocol: ${url.protocol}`,
-            }
-        }
+        else throw Errors.invalidEmojiUrlProtocol(url.protocol);
 
         return new Emoji(name, blob);
     }
