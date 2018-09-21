@@ -1,6 +1,6 @@
 import SlackTeam from '../models/SlackTeam';
 
-declare const Promise: any;  // Promises types seem to be broken
+declare const Promise: any;  // Promise types seem to be broken
 
 
 export const getTeams = async (defaultValue?: SlackTeam[]) => {
@@ -18,7 +18,7 @@ export const getTeams = async (defaultValue?: SlackTeam[]) => {
 
 export const updateTeams = async (teams: SlackTeam[]) => {
     const teamNames = teams.map(team => team.name);
-    const count: [] = await new Promise(
+    return await new Promise(
         (resolve: Function) => {
             chrome.storage.sync.set(
                 { 'teamNames': teamNames },

@@ -9,7 +9,7 @@ export default class Emoji {
         this.blob = blob;
     }
 
-    static fromUrl = async (name: string, url: URL) => {
+    static fromUrl = async (name: string, url: URL): Promise<Emoji> => {
         const urlString = url.toString();
 
         let blob: Blob = null;

@@ -1,34 +1,10 @@
-import * as RightClickMenu from '../chrome/RightClickMenu';
+import { RightClickMenu }from './chrome';
 
 
-// Add "Add emoji to {team}" buttons to right click menu
+// Add "Add emoji to ${team}" buttons to right click menu of images
 RightClickMenu.build();
+addInstallAndUpdateListener();
 
-chrome.runtime.onInstalled.addListener((details) => {
-    if (details.reason == 'install') {
-        chrome.runtime.openOptionsPage();
-    }
-    else if (details.reason == 'update') {
-        var prevVersionString = details.previousVersion;
-        var versionString = chrome.runtime.getManifest().version;
-        var _a = versionString.split('.'), major = _a[0], minor = _a[1], patch = _a[2];
-        var _b = prevVersionString.split('.'), pMajor = _b[0], pMinor = _b[1], pPatch = _b[2];
-        var pInt = parseInt;
-        var version = [pInt(major), pInt(minor), pInt(patch)];
-        var previousVersion = [pInt(pMajor), pInt(pMinor), pInt(pPatch)];
-        // structure of slack team name storage changed in 1.3.0
-        if (previousVersion < [1, 3, 0] && version >= [1, 3, 0]) {
-            chrome.storage.sync.get({ 'team_domain': null }, function (items) {
-                if (items.team_domain !== null) {
-                    chrome.storage.sync.set({ 'teamDomains': [items.team_domain] });
-                }
-                chrome.storage.sync.remove('team_domain');
-            });
-            alert('Slack Emoji Uploader now supports multiple teams!');
-            chrome.runtime.openOptionsPage();
-        }
-    }
-});
 
 chrome.runtime.onMessage.addListener((request, sender) => {
     if (sender.tab) {
@@ -93,6 +69,7 @@ slack_add_emoji = (info, tab) => {
         }
     }
 }
+
 remove_whitespace = (emoji_name) => {
     parts = emoji_name.split(' ');
     new_parts = [];
@@ -417,15 +394,5 @@ upload_emoji = (teamName, emoji_name, emoji_blob) => {
             }
         };
         get_xhr.send();
-    }
-}
-
-analyze_slack_response = (response) => {
-    alerts = response.getElementsByClassName('alert alert_error');
-    if (alerts.length !== 0) {
-        return alerts[0].innerText;
-    }
-    else {
-        return 'Success';
     }
 }

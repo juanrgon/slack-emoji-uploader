@@ -17,8 +17,9 @@ export default class SlackTeam {
         return await this.client.ping();
     }
 
-    addEmoji = async (name: string, url: string) => {
-        const emoji = await Emoji.fromUrl(name, new URL(url));
+    addEmoji = async (name: string, url: string): Promise<Emoji> => {
+        const emoji: Emoji = await Emoji.fromUrl(name, new URL(url));
         this.client.addEmoji(emoji);
+        return emoji;
     }
 }

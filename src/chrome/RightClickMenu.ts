@@ -1,10 +1,12 @@
-import * as UI from '../scripts/UI';
+import * as UI from '../ui';
 import SlackTeam from '../models/SlackTeam';
 import * as StoredTeams from './StoredTeams';
 
 declare const Promise: any;  // Promises types seem to be broken
 
 export const build = async () => {
+    clearRightClickMenu();
+
     const teams: SlackTeam[] = await StoredTeams.getTeams();
     if (teams === []) {
         chrome.contextMenus.create({
@@ -28,6 +30,6 @@ const addTeam = async (team: SlackTeam) => {
     );
 }
 
-const clear = (team: SlackTeam) => {
+const clearRightClickMenu = () => {
     chrome.contextMenus.removeAll();
 }

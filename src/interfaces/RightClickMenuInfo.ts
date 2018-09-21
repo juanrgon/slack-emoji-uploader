@@ -1,15 +1,5 @@
-import SlackTeam from '../models/SlackTeam';
-
-/**
-* Redirects to the extension options page to enter a team
-*/
-export const alertNoTeamEntered = () => {
-    alert('Oops. No Slack team was entered.');
-    chrome.runtime.openOptionsPage();
-}
-
 // See https://developer.chrome.com/apps/contextMenus
-interface rightClickMenuInfo {
+interface RightClickMenuInfo {
     menuItemId: string,  // The ID of the menu item that was clicked
     editable: boolean, // A flag indicating whether the element is editable (text input, textarea, etc.).
     parentMenuItemId?: string,  // The ID of the menu item that was clicked
@@ -23,16 +13,4 @@ interface rightClickMenuInfo {
     wasChecked?: boolean, // A flag indicating the state of a checkbox or radio item before it was clicked.
     checked?: boolean, // A flag indicating the state of a checkbox or radio item after it is clicked.
 }
-
-export const addEmoji = async (info: rightClickMenuInfo, tab: chrome.tabs.Tab) => {
-    const teamName = info.menuItemId;
-    const team = new SlackTeam(teamName);
-    const url = info.srcUrl;
-
-    let success: boolean = false
-    try {
-        success = await team.addEmoji(url)
-    } catch(e) {
-
-    }
-}
+export default RightClickMenuInfo;
