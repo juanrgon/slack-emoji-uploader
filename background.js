@@ -45,11 +45,10 @@ chrome.runtime.onInstalled.addListener(function (details) {
 		let [pMajor, pMinor, pPatch] = prevVersionString.split('.');
 
 		let pInt = parseInt;
-		let version = [pInt(major), pInt(minor), pInt(patch)];
 		let previousVersion = [pInt(pMajor), pInt(pMinor), pInt(pPatch)];
 
 		// structure of slack team name storage changed in 1.3.0
-		if (previousVersion < [1, 3, 0] && version >= [1, 3, 0]) {
+		if (previousVersion < [1, 3, 0]) {
 			chrome.storage.sync.get({ 'team_domain': null }, function (items) {
 				if (items.team_domain !== null) {
 					chrome.storage.sync.set({ 'teamDomains': [items.team_domain] });
@@ -62,7 +61,7 @@ chrome.runtime.onInstalled.addListener(function (details) {
 		}
 
 		// Compatiability changes to slack api in 1.3.3
-		if (previousVersion < [1, 3, 3] && version >= [1, 3, 3]) {
+		if (previousVersion < [1, 3, 3]) {
 			alert('Critical bug in Slack Emoji Uploader now fixed!');
 		}
 	}
