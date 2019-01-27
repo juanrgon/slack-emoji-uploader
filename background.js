@@ -60,6 +60,11 @@ chrome.runtime.onInstalled.addListener(function (details) {
 			alert('Slack Emoji Uploader now supports multiple teams!');
 			chrome.runtime.openOptionsPage();
 		}
+
+		// Compatiability changes to slack api in 1.3.3
+		if (previousVersion < [1, 3, 3] && version >= [1, 3, 3]) {
+			alert('Critical bug in Slack Emoji Uploader now fixed!');
+		}
 	}
 });
 chrome.runtime.onMessage.addListener(function (request, sender) {
