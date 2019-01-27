@@ -175,26 +175,15 @@ function upload_image(teamName, image_url, emoji_name) {
 		console.log("Interpreting data url.");
 		img_el.src = image_url;
 	} else {
-		var xhr = new XMLHttpRequest();
-		xhr.open('GET', image_url, true);
-		xhr.responseType = 'blob';
-		xhr.onreadystatechange = function () {
-			if (xhr.readyState == XMLHttpRequest.DONE) {
-				if (xhr.status === 0) {
-					alert_internet_disconnect();
+		fetch(image_url)
+			.then(response => response.blob())
+			.then(blob => {
+				if (blob.type === 'image/gif') {
+					shrink_gif_3rd_party(teamName, emoji_name, blob);
 				} else {
-					img_blob = xhr.response;
-					img_type = img_blob.type;
-					if (img_type === 'image/gif') {
-						shrink_gif_3rd_party(teamName, emoji_name, img_blob);
-					} else {
-						img_el.src = URL.createObjectURL(img_blob);
-					}
+					img_el.src = URL.createObjectURL(img_blob);
 				}
-			}
-		}
-		console.log("Loading the image.");
-		xhr.send();
+			})
 	}
 }
 
