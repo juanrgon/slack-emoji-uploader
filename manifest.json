@@ -4,7 +4,10 @@
     },
     "description": "Add emojis to slack!",
     "icons": {
-        "128": "slack.png"
+        "16": "icons/16.png",
+        "24": "icons/24.png",
+        "32": "icons/32.png",
+        "124": "icons/124.png"
     },
     "offline_enabled": false,
     "browser_action": {
