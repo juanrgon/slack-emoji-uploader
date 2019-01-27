@@ -352,6 +352,7 @@ function upload_emoji(teamName, emoji_name, emoji_blob) {
 		chrome.runtime.openOptionsPage();
 	} else {
 		var emoji_cust_url = 'https://' + slack_team_domain + '.slack.com/customize/emoji';
+		var emoji_add_url = 'https://' + slack_team_domain + '.slack.com/api/emoji.add';
 		var get_xhr = new XMLHttpRequest();
 		get_xhr.open("GET", emoji_cust_url, true);
 		get_xhr.responseType = 'document';
@@ -369,73 +370,50 @@ function upload_emoji(teamName, emoji_name, emoji_blob) {
 						url: 'https://' + slack_team_domain + '.slack.com'
 					});
 				} {
-					emoji_page = get_xhr.response;
-					upload_form = emoji_page.getElementById('addemoji');
-					if (upload_form === null) {
+					let emoji_page = get_xhr.response;
+					let scripts = emoji_page.getElementsByTagName('script');
+					if (scripts.length === 0) {
 						alert("You can't upload custom emojis. Your admin has restricted you :(")
 					} else {
-						inputs = upload_form.getElementsByTagName('input');
-						for (var i = 0; i < inputs.length; i++) {
-							input = inputs[i];
-							if (input.name == 'crumb') {
-								crumb = input.value;
-								break;
-							}
-						}
-						console.log(crumb);
-						if (crumb !== undefined) {
-							var post_xhr = new XMLHttpRequest();
-							post_xhr.open("POST", emoji_cust_url, true);
-							post_xhr.responseType = 'document';
-							var form_data = new FormData();
+						let api_token = /api_token: "(.*)"/.exec(scripts[13].innerHTML)[1];
+						console.log(api_token);
+						if (api_token !== undefined) {
+							let form_data = new FormData();
 							form_data.append('name', emoji_name);
-							form_data.append('img', emoji_blob);
+							form_data.append('image', emoji_blob);
 							form_data.append('mode', 'data');
-							form_data.append('add', '1');
-							form_data.append('crumb', crumb);
-							post_xhr.onreadystatechange = function () {
-								if (post_xhr.readyState == XMLHttpRequest.DONE) {
-									if (get_xhr.status === 0) {
-										alert_internet_disconnect();
-									} else {
-										results = analyze_slack_response(post_xhr.response);
-										var msg;
-										var title;
-										var iconUrl;
-										if (results == 'Success') {
-											title = 'Success!';
-											msg = 'Added the ' + emoji_name + ' emoji to ' + teamName + '!';
-											iconUrl = URL.createObjectURL(emoji_blob);
-										} else {
-											title = 'Failure';
-											msg = 'Upload to ' + teamName + ' failed: ' + results;
-											iconUrl = "failure.png";
+							form_data.append('token', api_token);
+							fetch(emoji_add_url, {
+								method: 'POST',
+								body: form_data
+							})
+								.then(response => response.json())
+								.then(json => {
+									let title = 'Success!';
+									let msg = `Added the ${emoji_name} emoji to ${teamName}!`;
+									let iconUrl = URL.createObjectURL(emoji_blob);
+									if (!json['ok']) {
+										const error_reasons = {
+											"error_name_taken": "Name already taken",
 										}
-										var opt = {
-											type: "basic",
-											title: title,
-											message: msg,
-											iconUrl: iconUrl
-										};
-										chrome.notifications.create(undefined, opt);
+										const reason = error_reasons[json['error']] || json['error'];
+										title = 'Failure';
+										msg = `Upload to ${teamName} failed: \n${reason}`;
+										iconUrl = "failure.png";
 									}
-								}
-							}
-							post_xhr.send(form_data);
+									chrome.notifications.create(undefined, {
+										type: "basic",
+										title: title,
+										message: msg,
+										iconUrl: iconUrl
+									});
+								})
+								.catch(error => console.error('Error:', error))
 						}
 					}
 				}
 			}
 		}
 		get_xhr.send();
-	}
-}
-
-function analyze_slack_response(response) {
-	alerts = response.getElementsByClassName('alert alert_error');
-	if (alerts.length !== 0) {
-		return alerts[0].innerText;
-	} else {
-		return 'Success';
 	}
 }
