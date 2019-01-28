@@ -88,7 +88,7 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
 							if (teams !== null) {
 								for (let i = 0; i < teams.length; i++) {
 									let teamName = teams[i];
-									upload_emoji(teamName, request.emojiName, emoji_blob);
+									uploadEmoji(teamName, request.emojiName, emoji_blob);
 								}
 							}
 						});
@@ -160,7 +160,7 @@ function upload_image(teamName, image_url, emoji_name) {
 		emoji_sized_canvas = emoji_sized(canvas);
 		emoji_sized_canvas.toBlob(function (emoji_blob) {
 			console.log('canvas is now a blob');
-			upload_emoji(teamName, emoji_name, emoji_blob);
+			uploadEmoji(teamName, emoji_name, emoji_blob);
 		});
 	};
 	if ((url_parser.protocol == 'data:') || (url_parser.protocol == 'file:')) {
@@ -181,7 +181,7 @@ function upload_image(teamName, image_url, emoji_name) {
 				if (blob.type === 'image/gif') {
 					shrink_gif_3rd_party(teamName, emoji_name, blob);
 				} else {
-					img_el.src = URL.createObjectURL(img_blob);
+					img_el.src = URL.createObjectURL(blob);
 				}
 			})
 	}
@@ -263,7 +263,7 @@ function shrink_gif_3rd_party(teamName, emoji_name, img_blob) {
 									} else {
 										console.log('Downloading resized gif.')
 										emoji_blob = get_xhr.response;
-										upload_emoji(teamName, emoji_name, emoji_blob);
+										uploadEmoji(teamName, emoji_name, emoji_blob);
 									}
 								}
 							}
@@ -337,76 +337,79 @@ function emoji_sized(canvas) {
 	}
 }
 
-function upload_emoji(teamName, emoji_name, emoji_blob) {
-	var slack_team_domain = teamName;
-	console.log(slack_team_domain === null);
-	if (slack_team_domain === null) {
+function uploadEmoji(teamName, emojiName, emojiBlob) {
+	const teamUrl = `https://${teamName}.slack.com`
+	let iconUrl = URL.createObjectURL(emojiBlob);
+	if (teamName === null) {
 		alert('Oops. No Slack team was entered.');
 		chrome.runtime.openOptionsPage();
-	} else {
-		var emoji_cust_url = 'https://' + slack_team_domain + '.slack.com/customize/emoji';
-		var emoji_add_url = 'https://' + slack_team_domain + '.slack.com/api/emoji.add';
-		var get_xhr = new XMLHttpRequest();
-		get_xhr.open("GET", emoji_cust_url, true);
-		get_xhr.responseType = 'document';
-		get_xhr.onreadystatechange = function () {
-			if (get_xhr.readyState == XMLHttpRequest.DONE) {
-				if (get_xhr.status != 200) {
-					if (get_xhr.status === 0) {
-						alert_internet_disconnect();
-					} else {
-						alert('Cannot reach the emoji customization page of ' + slack_team_domain + '.');
-					}
-				} else if (get_xhr.responseURL !== emoji_cust_url) {
-					alert('Please login to https://' + slack_team_domain + '.slack.com');
-					chrome.tabs.create({
-						url: 'https://' + slack_team_domain + '.slack.com'
-					});
-				} {
-					let emoji_page = get_xhr.response;
-					let scripts = emoji_page.getElementsByTagName('script');
-					if (scripts.length === 0) {
-						alert("You can't upload custom emojis. Your admin has restricted you :(")
-					} else {
-						let api_token = /api_token: "(.*)"/.exec(scripts[13].innerHTML)[1];
-						console.log(api_token);
-						if (api_token !== undefined) {
-							let form_data = new FormData();
-							form_data.append('name', emoji_name);
-							form_data.append('image', emoji_blob);
-							form_data.append('mode', 'data');
-							form_data.append('token', api_token);
-							fetch(emoji_add_url, {
-								method: 'POST',
-								body: form_data
-							})
-								.then(response => response.json())
-								.then(json => {
-									let title = 'Success!';
-									let msg = `Added the ${emoji_name} emoji to ${teamName}!`;
-									let iconUrl = URL.createObjectURL(emoji_blob);
-									if (!json['ok']) {
-										const error_reasons = {
-											"error_name_taken": "Name already taken",
-										}
-										const reason = error_reasons[json['error']] || json['error'];
-										title = 'Failure';
-										msg = `Upload to ${teamName} failed: \n${reason}`;
-										iconUrl = "failure.png";
-									}
-									chrome.notifications.create(undefined, {
-										type: "basic",
-										title: title,
-										message: msg,
-										iconUrl: iconUrl
-									});
-								})
-								.catch(error => console.error('Error:', error))
-						}
-					}
+		return
+	}
+	chrome.notifications.create(undefined, {
+		type: "basic",
+		title: `Uploading`,
+		message: `Adding :${emojiName}:...`,
+		iconUrl: iconUrl,
+	});
+	fetch(`${teamUrl}/customize/emoji`)
+		.then(response => response.text())
+		.then(html => {
+			let apiToken;
+			try {
+				apiToken = /api_token: "(\S+)"/.exec(html)[1];
+			} catch (err) {
+				if (err.message === "Cannot read property '1' of null") {
+					// Assume the user isn't logged in
+					throw { message: `Please log in to ${teamName}`, type: 'not-logged-in' }
 				}
 			}
+			return apiToken;
 		}
-		get_xhr.send();
-	}
+		)
+		.then(apiToken => {
+			let formData = new FormData();
+			formData.set('name', emojiName);
+			formData.set('image', emojiBlob);
+			formData.set('mode', 'data');
+			formData.set('token', apiToken);
+			fetch(`${teamUrl}/api/emoji.add`, {
+				method: 'POST',
+				body: formData
+			})
+				.then(response => response.json())
+				.then(json => {
+					if (!json['ok']) {
+						const errorReasons = {
+							"error_name_taken": "An emoji with that name already exists",
+						}
+						const reason = errorReasons[json['error']] || json['error'];
+						throw {message: reason}
+					}
+					chrome.notifications.create(undefined, {
+						type:'basic',
+						title: 'Success!',
+						message: `:${emojiName}: added to ${teamName}!`,
+						iconUrl: iconUrl,
+						},
+					);
+				})
+				.catch(error => console.error('Error:', error))
+		})
+		.catch(err => {
+			if (err.message === 'Failed to fetch') {
+				err.message = 'Got disconnected from the internet';
+			}
+
+			msg = `Failed to add :${emojiName}: \n${err.message}`;
+			if (err.type === 'not-logged-in') {
+				chrome.tabs.create({ url: teamUrl });
+			}
+			console.log('updating notification')
+			chrome.notifications.create(undefined, {
+				type: "basic",
+				title: 'Failure',
+				message: msg,
+				iconUrl: "failure.png"
+			});
+		})
 }
