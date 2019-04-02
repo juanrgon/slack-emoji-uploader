@@ -356,7 +356,7 @@ function uploadEmoji(teamName, emojiName, emojiBlob) {
 		.then(html => {
 			let apiToken;
 			try {
-				apiToken = /api_token: "(\S+)"/.exec(html)[1];
+				apiToken = /"api_token":"([\w|-]+)"/.exec(html)[1];
 			} catch (err) {
 				if (err.message === "Cannot read property '1' of null") {
 					// Assume the user isn't logged in
