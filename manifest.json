@@ -1,6 +1,6 @@
 {
     "background": {
-        "scripts": ["background.js"]
+        "scripts": ["main.js"]
     },
     "description": "Add emojis to slack!",
     "icons": {
