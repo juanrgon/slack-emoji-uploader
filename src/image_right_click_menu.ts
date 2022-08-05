@@ -5,8 +5,10 @@ export const createAllButtons = async () => {
   // First remove all right click menu buttons created by this extension
   chrome_extension.removeAllRightClickMenuButtons();
 
+  // load slack teams from browser storage
   const slack_teams = await slack_team.SlackTeam.loadFromBrowserStorage();
 
+  // create a right click menu button for each slack team
   slack_teams.forEach((team) => {
     chrome_extension.addRightClickMenuButton({
       id: `add-emoji-to-${team.name}`,
