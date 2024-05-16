@@ -181,7 +181,7 @@ function upload_image(teamName, image_url, emoji_name) {
 			.then(response => response.blob())
 			.then(blob => {
 				if (blob.type === 'image/gif') {
-					shrink_gif_3rd_party(teamName, emoji_name, blob);
+                    alert('GIFs are not supported.')
 				} else {
 					img_el.src = URL.createObjectURL(blob);
 				}
@@ -191,95 +191,6 @@ function upload_image(teamName, image_url, emoji_name) {
 
 function alert_internet_disconnect() {
 	alert("Woah. I got disconnected from the internet. Are you sure you're connected?");
-}
-
-function shrink_gif_3rd_party(teamName, emoji_name, img_blob) {
-	console.log('Going to shrink gif.')
-	var form_1_data = new FormData();
-	form_1_data.append('new-image', img_blob);
-	var post_1_xhr = new XMLHttpRequest();
-	post_1_xhr.open("POST", 'http://ezgif.com/resize', true);
-	post_1_xhr.responseType = 'document';
-	post_1_xhr.onreadystatechange = function () {
-		if (post_1_xhr.readyState == XMLHttpRequest.DONE) {
-			if (post_1_xhr.status === 0) {
-				alert_internet_disconnect();
-			} else {
-				console.log('Got response back from uploading gif.')
-				var stats = post_1_xhr.response.getElementsByClassName('filestats')[0].innerText;
-				var file_size_str = stats.split(',')[0].split(':')[1];
-				var file_size = file_size_str.substring(0, file_size_str.length - 1);
-				file_size = parseFloat(file_size);
-				if (file_size_str.substring(file_size_str.length - 1) == 'M') {
-					file_size = file_size * 1000;
-				}
-				console.log('file_size: ' + file_size_str);
-				var width = stats.split(',')[1].split(':')[1];
-				width = parseInt(width);
-				console.log('width: ' + width);
-				var height = stats.split(',')[2].split(':')[1];
-				height = parseInt(height);
-				console.log('height: ' + height);
-				var long_side = Math.max(height, width);
-				var long_side_name;
-				if (width === long_side) {
-					long_side_name = 'width';
-				} else {
-					long_side_name = 'height';
-				}
-				var percentage_1 = 128 / long_side;
-				var percentage_2 = 64 / file_size;
-				var percentage = Math.min(percentage_1, percentage_2);
-				console.log('long_side' + long_side);
-				var filename = post_1_xhr.responseURL.split('/')[4];
-				console.log(filename);
-				var token = post_1_xhr.response.getElementsByName('token')[0].value;
-				var post_2_xhr = new XMLHttpRequest();
-				post_2_xhr.open("POST", 'http://ezgif.com/resize', true);
-				post_2_xhr.responseType = 'document';
-				var form_2_data = new FormData();
-				form_2_data.append('file', filename);
-				form_2_data.append('token', token);
-				form_2_data.append('old_width', width);
-				form_2_data.append('old_height', height);
-				console.log(long_side + ': ' + percentage * long_side);
-				form_2_data.append(long_side_name, percentage * long_side);
-				form_2_data.append('percentage', percentage)
-				form_2_data.append('method', 'gifsicle')
-				post_2_xhr.onreadystatechange = function () {
-					if (post_2_xhr.readyState == XMLHttpRequest.DONE) {
-						if (post_2_xhr.status === 0) {
-							alert_internet_disconnect();
-						} else {
-							console.log('Got response back from resizing gif.')
-							dom = post_2_xhr.response;
-							console.log(dom);
-							var img_url = dom.getElementsByTagName('img')[0].src;
-							get_xhr = new XMLHttpRequest();
-							get_xhr.open('GET', img_url, true);
-							get_xhr.responseType = 'blob';
-							get_xhr.onreadystatechange = function () {
-								if (get_xhr.readyState == XMLHttpRequest.DONE) {
-									if (get_xhr.status === 0) {
-										alert_internet_disconnect();
-									} else {
-										console.log('Downloading resized gif.')
-										emoji_blob = get_xhr.response;
-										uploadEmoji(teamName, emoji_name, emoji_blob);
-									}
-								}
-							}
-							get_xhr.send();
-						}
-					}
-				}
-				console.log('Sending request to resize gif.')
-				post_2_xhr.send(form_2_data);
-			}
-		}
-	}
-	console.log('Uploading gif.')
-	post_1_xhr.send(form_1_data);
 }
 
 function emoji_dimensions(width, height) {
