@@ -141,7 +141,9 @@ function remove_whitespace(emoji_name) {
 }
 
 function validate_emoji_name(emoji_name) {
-	var re = '^[a-zA-Z0-9-_ ]*[a-zA-Z0-9-_]+[a-zA-Z0-9-_ ]*$'
+	var japanese = '\u3041-\u3096\u30A0-\u30FF\u3400-\u4DB5\u4E00-\u9FCB\uF900-\uFA6A';
+	var allowed_chars = `a-zA-Z0-9-_${japanese}`;
+	var re = new RegExp(`^[${allowed_chars} ]*[${allowed_chars}]+[${allowed_chars} ]*$`, 'u')
 	var empty_re = '^ *$'
 	if (emoji_name.match(re) === null) {
 		return false;
