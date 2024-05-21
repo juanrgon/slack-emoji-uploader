@@ -182,6 +182,7 @@ function upload_image(teamName, image_url, emoji_name) {
 			.then(blob => {
 				if (blob.type === 'image/gif') {
                     alert('GIFs are not supported.')
+		    throw new Error('GIFs are not supported');			
 				} else {
 					img_el.src = URL.createObjectURL(blob);
 				}
