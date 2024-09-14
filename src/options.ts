@@ -3,6 +3,12 @@
  */
 function saveTeams() {
   const teamsDiv = document.getElementById("teams");
+
+  if (!teamsDiv) {
+    console.error("No teams div found");
+    return;
+  }
+
   const teamInputs = teamsDiv.children;
   const teamStatuses = [];
   const teamDomains: string[] = [];
@@ -23,10 +29,21 @@ function saveTeams() {
       teamStatus.style.color = "grey";
       continue;
     }
+
+    if (!(teamInput instanceof HTMLElement)) {
+      console.error("Team input is not an HTMLElement");
+      continue;
+    }
+
     teamStatuses.push(teamValidity(teamInput));
     teamDomains.push(teamDomain);
   }
   const saveStatus = document.getElementById("settings-status");
+
+  if (!saveStatus) {
+    console.error("No save status found");
+    return;
+  }
 
   if (teamDomains.length > 0) {
     saveStatus.textContent = "Saving...";
@@ -76,10 +93,21 @@ function saveTeams() {
  * @param {Object} teamInput the team input row HTML element
  * @return {Promise} a promise to the team status
  */
-function teamValidity(teamInput) {
-  return new Promise(function (resolve, reject) {
-    const teamStatus = teamInput.getElementsByClassName("team-status")[0];
-    const teamDomain = teamInput.getElementsByClassName("team-name")[0].value;
+function teamValidity(teamInput: HTMLElement) {
+  return new Promise<boolean>((resolve, reject) => {
+    const teamStatus = teamInput.querySelector(
+      ".team-status"
+    ) as HTMLElement | null;
+    const teamNameElement = teamInput.querySelector(
+      ".team-name"
+    ) as HTMLInputElement | null;
+    const teamDomain = teamNameElement?.value;
+
+    if (!teamStatus) {
+      console.error("No team status found");
+      return;
+    }
+
     console.log('Checking "' + teamDomain + '"');
     teamStatus.textContent = "";
     const xhr = new XMLHttpRequest();
@@ -118,17 +146,30 @@ function restoreTeams() {
     },
     function (items) {
       const teamsDiv = document.getElementById("teams");
-      while (teamsDiv.hasChildNodes()) {
-        teamsDiv.removeChild(teamsDiv.lastChild);
+
+      if (!teamsDiv) {
+        console.error("No teams div found");
+        return;
       }
+
+      while (teamsDiv.hasChildNodes()) {
+        const lastTeam = teamsDiv.lastChild;
+        if (lastTeam) {
+          teamsDiv.removeChild(lastTeam);
+        }
+      }
+
       const teamNames = items.teamDomains;
       for (let i = 0; i < teamNames.length; i++) {
         const teamName = teamNames[i];
         const teamDiv = createTeamDiv(teamName);
         teamsDiv.append(teamDiv);
       }
+
       if (teamsDiv.children.length === 1) {
-        const removeIcon = teamsDiv.getElementsByClassName("remove-icon")[0] as HTMLElement;
+        const removeIcon = teamsDiv.getElementsByClassName(
+          "remove-icon"
+        )[0] as HTMLElement;
         if (removeIcon) {
           removeIcon.style.display = "none";
         }
@@ -181,6 +222,12 @@ function createTeamDiv(teamName?: string) {
 function addTeamInput() {
   const teamDivs = document.getElementById("teams");
   const newTeamDiv = createTeamDiv();
+
+  if (!teamDivs) {
+    console.error("No teams div found");
+    return;
+  }
+
   teamDivs.append(newTeamDiv);
   const removeIcons = teamDivs.getElementsByClassName("remove-icon");
   if (removeIcons.length === 2) {
@@ -193,10 +240,21 @@ function addTeamInput() {
  * Removes the team input box associated with the clicked 'x' icon
  * @param {event} event the click event that triggers this function
  */
-function removeTeamInput(event) {
+function removeTeamInput(event: Event) {
   const teamsDiv = document.getElementById("teams");
   const clickedIcon = event.target;
+
+  if (!(clickedIcon instanceof HTMLElement)) {
+    console.error("Clicked icon is not an HTMLElement");
+    return;
+  }
+
   const teamInputBox = clickedIcon.parentElement;
+
+  if (!teamsDiv || !teamInputBox) {
+    console.error("No teams div or team input box found");
+    return;
+  }
   teamsDiv.removeChild(teamInputBox);
   const removeIcons = teamsDiv.getElementsByClassName("remove-icon");
   if (removeIcons.length === 1) {
@@ -206,5 +264,5 @@ function removeTeamInput(event) {
 }
 
 document.addEventListener("DOMContentLoaded", restoreTeams);
-document.getElementById("save").addEventListener("click", saveTeams);
-document.getElementById("add-team").addEventListener("click", addTeamInput);
+document.getElementById("save")?.addEventListener("click", saveTeams);
+document.getElementById("add-team")?.addEventListener("click", addTeamInput);
