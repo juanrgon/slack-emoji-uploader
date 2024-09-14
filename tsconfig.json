@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "moduleResolution": "Node",
+        "lib": [
+            "es2017",
+            "dom"
+        ],
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "types": [
+            "chrome"
+        ]
+    },
+    "name": "slack-emoji-uploader",
+    "description": "Add emojis to slack!",
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc -w"
+    },
+    "devDependencies": {
+        "@types/chrome": "^0.0.xxx",
+        "typescript": "^4.x.x"
+    },
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx"
+    ],
+    "copy": [
+        "src/**/*.html",
+        "src/**/*.css",
+        "src/manifest.json"
+    ]
+}
