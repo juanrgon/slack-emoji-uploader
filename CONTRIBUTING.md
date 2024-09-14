@@ -75,14 +75,6 @@ Follow these steps to set up the project for development:
 4. Push your changes to your fork
 5. Submit a pull request to the main repository
 
-## Code Style
-
-[Any specific code style guidelines for the project]
-
-## Testing
-
-[Instructions for running tests, if applicable]
-
 ## Reporting Issues
 
 If you find a bug or have a suggestion for improvement, please open an issue on the GitHub repository.
