@@ -1,5 +1,5 @@
 // Promisify chrome.storage.sync.get
-function getStorageSync(keys) {
+function getStorageSync(keys: Record<string, any>) {
   console.debug("Calling getStorageSync with keys:", keys);
   return new Promise((resolve, reject) => {
     chrome.storage.sync.get(keys, (items) => {
@@ -14,7 +14,7 @@ function getStorageSync(keys) {
 }
 
 // Promisify chrome.storage.sync.set
-function setStorageSync(items) {
+function setStorageSync(items: Record<string, any>) {
   console.debug("Calling setStorageSync with items:", items);
   return new Promise<void>((resolve, reject) => {
     chrome.storage.sync.set(items, () => {
@@ -29,7 +29,7 @@ function setStorageSync(items) {
 }
 
 // Promisify chrome.storage.sync.remove
-function removeStorageSync(keys) {
+function removeStorageSync(keys: string | string[]) {
   console.debug("Calling removeStorageSync with keys:", keys);
   return new Promise<void>((resolve, reject) => {
     chrome.storage.sync.remove(keys, () => {
@@ -137,7 +137,7 @@ type OldStorage = {
         `Invalid storage data: ${validationResult.errors?.join(", ")}`
       );
     }
-    const teams = validationResult.data.teamDomains;
+    const teams = validationResult.data?.teamDomains;
     console.log("Slack Teams", teams);
     if (teams === null) {
       console.debug("No teams found, creating default context menu");
@@ -164,7 +164,7 @@ function alertNoTeamEntered() {
   chrome.runtime.openOptionsPage();
 }
 
-async function updateRightClickMenu(teams) {
+async function updateRightClickMenu(teams: string[]) {
   console.debug("Updating right-click menu with teams:", teams);
   try {
     await removeAllContextMenus();
@@ -195,7 +195,8 @@ chrome.runtime.onInstalled.addListener(async function (details) {
       const versionString = chrome.runtime.getManifest().version;
 
       const [major, minor, patch] = versionString.split(".").map(Number);
-      const [pMajor, pMinor, pPatch] = prevVersionString.split(".").map(Number);
+      const [pMajor, pMinor, pPatch] =
+        prevVersionString?.split(".").map(Number) ?? [];
 
       const previousVersion = [pMajor, pMinor, pPatch];
 
@@ -221,9 +222,9 @@ chrome.runtime.onInstalled.addListener(async function (details) {
             `Invalid old storage data: ${validationResult.errors?.join(", ")}`
           );
         }
-        if (validationResult.data.team_domain !== null) {
+        if (validationResult.data?.team_domain !== null) {
           await setStorageSync({
-            teamDomains: [validationResult.data.team_domain],
+            teamDomains: [validationResult.data?.team_domain],
           });
         }
         await removeStorageSync("team_domain");
@@ -256,7 +257,7 @@ chrome.runtime.onMessage.addListener(async function (request, sender) {
   if (sender.tab) {
     const tab_url = sender.tab.url;
     const re = /^http(s)?:\/\/(www\.)?slackmojis\.com\/?.*$/;
-    if (re.test(tab_url)) {
+    if (tab_url && re.test(tab_url)) {
       console.log("Retrieved request to add emoji from " + tab_url);
       console.log("Request " + JSON.stringify(request));
       try {
@@ -279,7 +280,7 @@ chrome.runtime.onMessage.addListener(async function (request, sender) {
             `Invalid storage data: ${validationResult.errors?.join(", ")}`
           );
         }
-        const teams = validationResult.data.teamDomains;
+        const teams = validationResult.data?.teamDomains;
         if (teams !== null) {
           for (let i = 0; i < teams.length; i++) {
             const teamName = teams[i];
@@ -298,7 +299,10 @@ chrome.runtime.onMessage.addListener(async function (request, sender) {
   }
 });
 
-async function slack_add_emoji(info, tab) {
+async function slack_add_emoji(
+  info: chrome.contextMenus.OnClickData,
+  tab: chrome.tabs.Tab
+) {
   console.debug("slack_add_emoji called with info:", info, "and tab:", tab);
   let emoji_name = null;
   let prompt_message = "Give your emoji a name.";
@@ -330,12 +334,23 @@ async function slack_add_emoji(info, tab) {
         "with emoji name:",
         emoji_name
       );
+
+      if (typeof image_url !== "string") {
+        console.error("Invalid image URL:", image_url);
+        return;
+      }
+
+      if (typeof teamName !== "string") {
+        console.error("Invalid team name:", teamName);
+        return;
+      }
+
       await upload_image(teamName, image_url, emoji_name);
     }
   }
 }
 
-function remove_whitespace(emoji_name) {
+function remove_whitespace(emoji_name: string) {
   console.debug("Removing whitespace from emoji name:", emoji_name);
   const parts = emoji_name.split(" ");
   const new_parts = [];
@@ -349,7 +364,7 @@ function remove_whitespace(emoji_name) {
   return result;
 }
 
-function validate_emoji_name(emoji_name) {
+function validate_emoji_name(emoji_name: string) {
   console.debug("Validating emoji name:", emoji_name);
   const japanese =
     "\u3041-\u3096\u30A0-\u30FF\u3400-\u4DB5\u4E00-\u9FCB\uF900-\uFA6A";
@@ -363,7 +378,11 @@ function validate_emoji_name(emoji_name) {
   return isValid;
 }
 
-async function upload_image(teamName, image_url, emoji_name) {
+async function upload_image(
+  teamName: string,
+  image_url: string,
+  emoji_name: string
+) {
   console.debug(
     "Uploading image for team:",
     teamName,
@@ -375,7 +394,7 @@ async function upload_image(teamName, image_url, emoji_name) {
   try {
     const url_parser = document.createElement("a");
     url_parser.href = image_url;
-    let img_el;
+    let img_el: HTMLImageElement;
     if (url_parser.protocol === "data:" || url_parser.protocol === "file:") {
       if (url_parser.protocol === "file:") {
         const isAllowedAccess = await isAllowedFileSchemeAccess();
@@ -403,17 +422,23 @@ async function upload_image(teamName, image_url, emoji_name) {
     }
     const canvas = img_to_canvas(img_el);
     const emoji_sized_canvas = emoji_sized(canvas);
-    const emoji_blob = await new Promise((resolve) => {
+    const emoji_blob = await new Promise<Blob | null>((resolve) => {
       emoji_sized_canvas.toBlob(resolve);
     });
     console.log("canvas is now a blob");
+
+    if (emoji_blob === null) {
+      console.error("Failed to convert canvas to blob");
+      return;
+    }
+
     await uploadEmoji(teamName, emoji_name, emoji_blob);
   } catch (error) {
     console.error("Error uploading image:", error);
   }
 }
 
-function loadImage(src) {
+function loadImage(src: string): Promise<HTMLImageElement> {
   console.debug("Loading image from source:", src);
   return new Promise((resolve, reject) => {
     const img = document.createElement("img");
@@ -437,7 +462,7 @@ function alert_internet_disconnect() {
   );
 }
 
-function emoji_dimensions(width, height) {
+function emoji_dimensions(width: number, height: number) {
   console.debug(
     "Calculating emoji dimensions for width:",
     width,
@@ -463,7 +488,7 @@ function emoji_dimensions(width, height) {
   return result;
 }
 
-function img_to_canvas(img) {
+function img_to_canvas(img: HTMLImageElement) {
   console.debug(
     "Converting image to canvas. Image dimensions:",
     img.width,
@@ -474,11 +499,16 @@ function img_to_canvas(img) {
   canvas.width = img.width;
   canvas.height = img.height;
   const canvas_ctx = canvas.getContext("2d");
+
+  if (canvas_ctx === null) {
+    throw new Error("Failed to get canvas context");
+  }
+
   canvas_ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   return canvas;
 }
 
-function emoji_sized(canvas) {
+function emoji_sized(canvas: HTMLCanvasElement) {
   console.debug(
     "Resizing canvas to emoji size. Current dimensions:",
     canvas.width,
@@ -500,6 +530,9 @@ function emoji_sized(canvas) {
     // Increase the size of the image and then resize the result.
     new_canvas.width = canvas.width * factor;
     new_canvas.height = canvas.height * factor;
+    if (new_canvas_ctx === null) {
+      throw new Error("Failed to get canvas context");
+    }
     new_canvas_ctx.drawImage(canvas, 0, 0, new_canvas.width, new_canvas.height);
     return emoji_sized(new_canvas);
   } else if (canvas_long_side > target_long_side * factor) {
@@ -507,18 +540,28 @@ function emoji_sized(canvas) {
     // Half the size of the image and then resize the result.
     new_canvas.width = canvas.width / factor;
     new_canvas.height = canvas.height / factor;
+    if (new_canvas_ctx === null) {
+      throw new Error("Failed to get canvas context");
+    }
     new_canvas_ctx.drawImage(canvas, 0, 0, new_canvas.width, new_canvas.height);
     return emoji_sized(new_canvas);
   } else {
     // Resize the image in one shot
     new_canvas.width = target_dim.width;
     new_canvas.height = target_dim.height;
+    if (new_canvas_ctx === null) {
+      throw new Error("Failed to get canvas context");
+    }
     new_canvas_ctx.drawImage(canvas, 0, 0, new_canvas.width, new_canvas.height);
     return new_canvas;
   }
 }
 
-async function uploadEmoji(teamName, emojiName, emojiBlob) {
+async function uploadEmoji(
+  teamName: string,
+  emojiName: string,
+  emojiBlob: Blob
+) {
   const teamUrl = `https://${teamName}.slack.com`;
   const iconUrl = URL.createObjectURL(emojiBlob);
   if (teamName === null) {
@@ -526,7 +569,7 @@ async function uploadEmoji(teamName, emojiName, emojiBlob) {
     chrome.runtime.openOptionsPage();
     return;
   }
-  chrome.notifications.create(undefined, {
+  chrome.notifications.create({
     type: "basic",
     title: `Uploading`,
     message: `Adding :${emojiName}:...`,
@@ -537,9 +580,9 @@ async function uploadEmoji(teamName, emojiName, emojiBlob) {
     const html = await response.text();
     let apiToken;
     try {
-      apiToken = /("|')?api_token("|')?:"([\w|-]+)"/.exec(html)[3];
+      apiToken = /("|')?api_token("|')?:"([\w|-]+)"/.exec(html)?.[3];
     } catch (err) {
-      if (err.message.includes("Cannot read property")) {
+      if (err instanceof Error && err.message.includes("Cannot read property")) {
         // Assume the user isn't logged in
         throw {
           message: `Please log in to ${teamName}`,
@@ -548,6 +591,10 @@ async function uploadEmoji(teamName, emojiName, emojiBlob) {
       } else {
         throw err;
       }
+    }
+
+    if (!apiToken) {
+      throw new Error("Failed to find API token");
     }
 
     const formData = new FormData();
@@ -564,18 +611,18 @@ async function uploadEmoji(teamName, emojiName, emojiBlob) {
     if (!json["ok"]) {
       const errorReasons = {
         error_name_taken: "An emoji with that name already exists",
-      };
-      const reason = errorReasons[json["error"]] || json["error"];
-      throw { message: reason };
+      } as const;
+      const reason = errorReasons[json["error"] as keyof typeof errorReasons] || json["error"];
+      throw new Error(reason);
     }
-    chrome.notifications.create(undefined, {
+    chrome.notifications.create({
       type: "basic",
       title: "Success!",
       message: `:${emojiName}: added to ${teamName}!`,
       iconUrl: iconUrl,
     });
-  } catch (err) {
-    if (err.message === "Failed to fetch") {
+  } catch (err: any) {
+    if (err instanceof Error && err.message === "Failed to fetch") {
       err.message = "Got disconnected from the internet";
     }
 
@@ -584,7 +631,7 @@ async function uploadEmoji(teamName, emojiName, emojiBlob) {
       chrome.tabs.create({ url: teamUrl });
     }
     console.log("updating notification");
-    chrome.notifications.create(undefined, {
+    chrome.notifications.create({
       type: "basic",
       title: "Failure",
       message: msg,
