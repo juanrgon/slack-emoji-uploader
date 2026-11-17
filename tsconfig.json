@@ -1,35 +1,18 @@
 {
-    "compilerOptions": {
-        "target": "ESNext",
-        "moduleResolution": "Node",
-        "strict": true,
-        "lib": [
-            "es2017",
-            "dom"
-        ],
-        "outDir": "./dist",
-        "rootDir": "./src",
-        "types": [
-            "chrome"
-        ]
-    },
-    "name": "slack-emoji-uploader",
-    "description": "Add emojis to slack!",
-    "scripts": {
-        "build": "tsc",
-        "watch": "tsc -w"
-    },
-    "devDependencies": {
-        "@types/chrome": "^0.0.xxx",
-        "typescript": "^4.x.x"
-    },
-    "include": [
-        "src/**/*.ts",
-        "src/**/*.tsx"
-    ],
-    "copy": [
-        "src/**/*.html",
-        "src/**/*.css",
-        "src/manifest.json"
-    ]
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["chrome", "node"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src", "tests", "scripts", "*.config.ts"]
 }

@@ -1,0 +1,136 @@
+main {
+  padding: 20px;
+}
+
+.preview {
+  display: flex;
+  gap: 12px;
+}
+
+.swatch {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  height: 112px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.swatch-light {
+  background: #ffffff;
+}
+
+.swatch-dark {
+  background: #1a1d21;
+}
+
+.swatch img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.details {
+  min-height: 2.8em;
+  margin: 10px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.details.failed {
+  color: var(--danger);
+  font-size: 14px;
+}
+
+label[for="name"] {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.name-field {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.name-field:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.name-field input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 2px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+}
+
+.error {
+  min-height: 1.4em;
+  margin: 4px 0 8px;
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.teams {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.team {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 4px 0;
+}
+
+.team label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* With a single workspace there is nothing to choose between. */
+.teams.single input[type="checkbox"] {
+  display: none;
+}
+
+.team-status {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.team.done .team-status {
+  color: var(--success);
+}
+
+.team.failed .team-status {
+  color: var(--danger);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+button.team-sign-in,
+#file-access {
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+#file-access {
+  margin-bottom: 14px;
+}

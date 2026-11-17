@@ -1,19 +1,86 @@
-.remove-icon {
-    cursor: pointer;
+form {
+  max-width: 560px;
+  margin: 48px auto;
+  padding: 0 24px;
 }
 
-.team-input+.team-input {
-    margin-top: 5px;
+h1 {
+  margin: 0 0 4px;
+  font-size: 20px;
 }
 
-#header-msg {
-    margin-bottom: 15px;
+.hint {
+  margin: 0 0 20px;
+  color: var(--muted);
 }
 
-#button-section {
-    margin-top: 15px;
+.teams {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
 }
 
-button {
-    display: inline
+.team {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  padding: 4px 0;
+}
+
+.team-name {
+  width: 180px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: right;
+}
+
+.team.invalid .team-name {
+  border-color: var(--danger);
+}
+
+.suffix {
+  color: var(--muted);
+}
+
+button.remove {
+  padding: 2px 8px;
+  border-color: transparent;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.team-status {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.team.ok .team-status {
+  color: var(--success);
+}
+
+.team.invalid .team-status,
+.team.warning .team-status {
+  color: var(--danger);
+}
+
+button.team-sign-in {
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#save-status {
+  color: var(--muted);
+  font-size: 12px;
 }
