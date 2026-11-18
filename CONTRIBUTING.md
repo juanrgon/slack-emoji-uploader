@@ -1,82 +1,69 @@
 # Contributing to Slack Emoji Uploader
 
-We're excited that you're interested in contributing to Slack Emoji Uploader! This document provides guidelines and instructions for contributing to this project.
+## Setup
 
-## Development Setup
+```bash
+git clone https://github.com/juanrgon/slack-emoji-uploader.git
+cd slack-emoji-uploader
+npm install
+```
 
-Follow these steps to set up the project for development:
+Node 20.11 or newer is required.
 
-1. **Clone the repository**
+## Running the extension
 
-   ```bash
-   git clone https://github.com/juanrgon/slack-emoji-uploader.git
-   cd slack-emoji-uploader
-   ```
+```bash
+npm run watch
+```
 
-2. **Install dependencies**
+This bundles the TypeScript in `src/` into `dist/` and rebuilds when files change. To load it in Chrome:
 
-   ```bash
-   npm install
-   ```
+1. Open `chrome://extensions` and turn on **Developer mode**.
+2. Click **Load unpacked** and choose the `dist` folder.
+3. After a rebuild, click the reload button on the extension's card.
 
-3. **Development workflow**
+`npm run build` makes a one-off build, and `npm run zip` builds and packs `dist/` into `slack-emoji-uploader.zip` for the Chrome Web Store.
 
-   To start the development process with automatic compilation and file watching:
+## How the code is laid out
 
-   ```bash
-   npm run watch
-   ```
+| Path | What it is |
+| --- | --- |
+| `src/manifest.json` | The Manifest V3 extension manifest. |
+| `src/background.ts` | Service worker: the right-click menu, the toolbar button, and opening the "add emoji" window. |
+| `src/add.{html,css,ts}` | The "add emoji" window: preview, name, upload. |
+| `src/options.{html,css,ts}` | The options page with the list of workspaces. |
+| `src/slackmojis.ts` | Content script for slackmojis.com. |
+| `src/lib/prepare.ts` | Turns any image into one Slack accepts. Decoding and scaling use browser APIs. |
+| `src/lib/gif-encode.ts` | Writes animated GIFs (palette, frame differences, timing). |
+| `src/lib/slack.ts` | Talks to Slack using the browser's signed-in session. |
+| `src/lib/storage.ts` | Saved workspaces and requests passed to the "add emoji" window. |
 
-   This command will:
-   - Watch for changes in TypeScript files and recompile them
-   - Copy static assets (HTML, CSS, JSON) to the `dist` folder
-   - Automatically update the `dist` folder as you make changes
+A service worker has no page, so anything that needs a canvas, an image decoder or user input happens in the "add emoji" window instead.
 
-4. **Building for production**
+## Checks
 
-   To create a production build:
+```bash
+npm run typecheck   # TypeScript
+npm test            # unit tests (Vitest)
+npm run test:e2e    # builds, then runs the extension in headless Chromium (Playwright)
+```
 
-   ```bash
-   npm run build
-   ```
+The end-to-end tests load the real extension and replace the network with fakes: a pretend Slack that records uploads, and a pretend web server for images. Uploaded files are decoded with Chrome's own image decoder to check their size, frames and timing.
 
-   This will compile all TypeScript files and copy static assets to the `dist` folder.
+They need a Chromium to run in. Either install Playwright's with `npx playwright install chromium`, or point at one you already have:
 
-5. **Loading the extension in Chrome**
+```bash
+CHROMIUM_PATH=/usr/lib/chromium/chromium npm run test:e2e
+```
 
-   - Open Chrome and navigate to `chrome://extensions`
-   - Enable "Developer mode" in the top right corner
-   - Click "Load unpacked" and select the `dist` folder from this project
+Use the browser binary itself for `CHROMIUM_PATH`. A launcher script that adds its own flags (as some Linux distributions ship at `/usr/bin/chromium`) can crash the headless browser.
 
-6. **Making changes**
+## Submitting changes
 
-   - Edit files in the `src` folder
-   - The `watch` script will automatically recompile and copy files
-   - Refresh the extension in Chrome to see your changes
+1. Create a branch for your change.
+2. Make sure the checks above pass.
+3. Open a pull request describing what changed and why.
 
-## Project Structure
+## Reporting issues
 
-- `src/`: Source files (TypeScript, HTML, CSS)
-- `dist/`: Compiled and copied files (generated, don't edit directly)
-- `tsconfig.json`: TypeScript configuration
-- `package.json`: Project dependencies and scripts
-
-## Available Scripts
-
-- `npm run watch`: Start development mode with file watching
-- `npm run build`: Create a production build
-- `npm run lint`: Run ESLint to check code quality (if configured)
-
-## Submitting Changes
-
-1. Fork the repository
-2. Create a new branch for your feature or bug fix
-3. Make your changes and commit them with a clear commit message
-4. Push your changes to your fork
-5. Submit a pull request to the main repository
-
-## Reporting Issues
-
-If you find a bug or have a suggestion for improvement, please open an issue on the GitHub repository.
-
-Thank you for contributing to Slack Emoji Uploader!
+If you find a bug or have a suggestion, please open an issue on GitHub.

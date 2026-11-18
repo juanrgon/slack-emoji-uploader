@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Add emoji to Slack</title>
+    <link rel="stylesheet" href="base.css" />
+    <link rel="stylesheet" href="add.css" />
+  </head>
+  <body>
+    <main>
+      <div class="preview" aria-hidden="true">
+        <div class="swatch swatch-light"><img id="preview-light" alt="" hidden /></div>
+        <div class="swatch swatch-dark"><img id="preview-dark" alt="" hidden /></div>
+      </div>
+      <p id="details" class="details" role="status">Loading image…</p>
+      <button id="file-access" type="button" hidden>Open extension settings</button>
+
+      <form id="form" novalidate>
+        <label for="name">Emoji name</label>
+        <div class="name-field">
+          <span>:</span>
+          <input id="name" type="text" maxlength="100" autocomplete="off" spellcheck="false" autofocus />
+          <span>:</span>
+        </div>
+        <p id="name-error" class="error" role="alert"></p>
+
+        <ul id="teams" class="teams"></ul>
+
+        <div class="actions">
+          <button id="cancel" type="button">Cancel</button>
+          <button id="submit" type="submit" class="primary">Add emoji</button>
+        </div>
+      </form>
+    </main>
+
+    <template id="team-row">
+      <li class="team">
+        <label><input type="checkbox" /><span class="team-name"></span></label>
+        <span class="team-status" role="status"></span>
+        <button class="team-sign-in" type="button" hidden>Open Slack</button>
+      </li>
+    </template>
+
+    <script src="add.js"></script>
+  </body>
+</html>

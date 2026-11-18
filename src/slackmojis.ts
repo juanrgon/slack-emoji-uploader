@@ -1,55 +1,25 @@
-function searchUpForTag(el: HTMLElement, tagName: string): HTMLElement | null {
-  let target: HTMLElement | null = el;
+// Content script for slackmojis.com: clicking an emoji there offers to add
+// it to Slack instead of downloading the file.
 
-  while (target?.tagName !== tagName) {
-    target = target?.parentElement;
-    if (target === null) {
-      return null;
-    }
-  }
+import type { AddSlackmojiMessage } from "./lib/messages";
 
-  return target;
-}
+document.addEventListener(
+  "click",
+  (event) => {
+    // Leave modified clicks alone so the site's normal download is still reachable.
+    if (event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    if (!(event.target instanceof Element)) return;
 
-function getEmojiDetails(clicked_el: HTMLElement) {
-  const anchor_tag = searchUpForTag(clicked_el, "A");
-  if (anchor_tag === null) {
-    return null;
-  }
-  const imageEl = anchor_tag.getElementsByTagName("img")[0];
-  const emojiName = anchor_tag
-    .getElementsByClassName("name")[0]
-    .innerHTML.split(":")[1];
-  return {
-    name: emojiName,
-    url: imageEl.src,
-  };
-}
+    // Listening on the document covers emoji the site loads in later, such as search results.
+    const link = event.target.closest("a.downloader");
+    const imageUrl = link?.querySelector("img")?.src;
+    if (!link || !imageUrl) return;
 
-function addEmoji(event: MouseEvent) {
-  const clicked_el = event.target;
-  const name_and_url = getEmojiDetails(clicked_el as HTMLElement);
-  if (name_and_url === null) {
-    return;
-  }
-  const url = name_and_url.url;
-  const name = name_and_url.name;
-  chrome.runtime.sendMessage({
-    emojiName: name,
-    emojiUrl: url,
-  });
-}
-const emojiButtons = document.getElementsByClassName("downloader");
-for (let i = 0; i < emojiButtons.length; i++) {
-  const emojiButton = emojiButtons[i];
-  emojiButton.removeAttribute("download");
-  emojiButton.setAttribute("href", "#");
-  emojiButton.setAttribute("onclick", "return false;");
-  emojiButton.addEventListener(
-    "click",
-    function (event) {
-      addEmoji(event as MouseEvent);
-    },
-    false
-  );
-}
+    event.preventDefault();
+    const name = link.querySelector(".name")?.textContent?.trim().replace(/^:|:$/g, "") ?? "";
+    const message: AddSlackmojiMessage = { type: "add-slackmoji", name, imageUrl };
+    // Sending fails if the extension was reloaded after this page opened; a refresh fixes that.
+    chrome.runtime.sendMessage(message).catch(() => {});
+  },
+  true,
+);

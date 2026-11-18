@@ -1,268 +1,137 @@
-/**
- * Attempt to save the input teams to chrome.storage.sync
- */
-function saveTeams() {
-  const teamsDiv = document.getElementById("teams");
+// Options page: the list of Slack workspaces emoji can be added to.
 
-  if (!teamsDiv) {
-    console.error("No teams div found");
-    return;
-  }
+import { checkTeam, normalizeTeam, teamUrl, type TeamStatus } from "./lib/slack";
+import { getTeams, setTeams } from "./lib/storage";
 
-  const teamInputs = teamsDiv.children;
-  const teamStatuses = [];
-  const teamDomains: string[] = [];
-  for (let i = 0; i < teamInputs.length; i++) {
-    const teamInput = teamInputs[i];
-    const teamNameElement = teamInput.getElementsByClassName(
-      "team-name"
-    )[0] as HTMLInputElement;
-    const teamDomain = teamNameElement.value;
-    if (teamDomain === "" || teamDomain === null || teamDomain === undefined) {
-      continue;
-    } else if (teamDomains.includes(teamDomain)) {
-      // Don't process team domains already listed.
-      const teamStatus = teamInput.getElementsByClassName(
-        "team-status"
-      )[0] as HTMLElement;
-      teamStatus.textContent = "Ignored duplicate entry";
-      teamStatus.style.color = "grey";
-      continue;
-    }
-
-    if (!(teamInput instanceof HTMLElement)) {
-      console.error("Team input is not an HTMLElement");
-      continue;
-    }
-
-    teamStatuses.push(teamValidity(teamInput));
-    teamDomains.push(teamDomain);
-  }
-  const saveStatus = document.getElementById("settings-status");
-
-  if (!saveStatus) {
-    console.error("No save status found");
-    return;
-  }
-
-  if (teamDomains.length > 0) {
-    saveStatus.textContent = "Saving...";
-    saveStatus.style.color = "black";
-  }
-
-  Promise.all(teamStatuses)
-    .then(function (status) {
-      if (teamDomains.length > 0) {
-        chrome.storage.sync.set(
-          {
-            teamDomains: teamDomains,
-          },
-          function () {
-            // Update status to let user know options were saved.
-            saveStatus.textContent = "Options saved!";
-            saveStatus.style.color = "green";
-            setTimeout(function () {
-              saveStatus.textContent = "";
-            }, 750);
-            chrome.runtime.sendMessage(teamDomains);
-          }
-        );
-      }
-    })
-    .catch(function (reason) {
-      saveStatus.textContent = "Save failed.";
-      saveStatus.style.color = "red";
-      setTimeout(function () {
-        saveStatus.textContent = "";
-      }, 750);
-      const errMsg = reason.toString();
-      console.log(errMsg);
-      if (errMsg.startsWith("Error: Not Logged in to ")) {
-        const teamUrl = errMsg.split(" ").slice(-1)[0];
-        console.log("Opening tab for", teamUrl);
-        setTimeout(function () {
-          chrome.tabs.create({ url: teamUrl });
-        }, 750);
-      }
-    });
+function byId<T extends HTMLElement>(id: string): T {
+  const element = document.getElementById(id);
+  if (!element) throw new Error(`Missing #${id}`);
+  return element as T;
 }
 
-/**
- * An async function that indicates whether a team exists and is currently
- * logged into.
- * @param {Object} teamInput the team input row HTML element
- * @return {Promise} a promise to the team status
- */
-function teamValidity(teamInput: HTMLElement) {
-  return new Promise<boolean>((resolve, reject) => {
-    const teamStatus = teamInput.querySelector(
-      ".team-status"
-    ) as HTMLElement | null;
-    const teamNameElement = teamInput.querySelector(
-      ".team-name"
-    ) as HTMLInputElement | null;
-    const teamDomain = teamNameElement?.value;
+const form = byId<HTMLFormElement>("form");
+const teamList = byId<HTMLUListElement>("teams");
+const addButton = byId<HTMLButtonElement>("add-team");
+const saveStatus = byId<HTMLSpanElement>("save-status");
+const rowTemplate = byId<HTMLTemplateElement>("team-row");
 
-    if (!teamStatus) {
-      console.error("No team status found");
-      return;
+type RowState = "" | "ok" | "warning" | "invalid";
+
+const STATUS_TEXT: Record<TeamStatus, string> = {
+  "signed-in": "Signed in",
+  "signed-out": "Not signed in. Sign in to Slack in this browser to add emoji.",
+  unreachable: "Couldn't open this workspace. Check the name, or sign in to Slack.",
+};
+
+const rows: TeamRow[] = [];
+
+function addRow(team = ""): TeamRow {
+  const row = new TeamRow(team);
+  rows.push(row);
+  return row;
+}
+
+class TeamRow {
+  private readonly element: HTMLLIElement;
+  private readonly input: HTMLInputElement;
+  private readonly status: HTMLElement;
+  private readonly signIn: HTMLButtonElement;
+
+  constructor(team: string) {
+    const fragment = rowTemplate.content.cloneNode(true) as DocumentFragment;
+    this.element = fragment.querySelector("li")!;
+    this.input = fragment.querySelector("input")!;
+    this.status = fragment.querySelector(".team-status")!;
+    this.signIn = fragment.querySelector(".team-sign-in")!;
+    this.input.value = team;
+    this.input.addEventListener("input", () => this.show("", ""));
+    this.signIn.addEventListener("click", () => {
+      const current = normalizeTeam(this.input.value);
+      if (current) void chrome.tabs.create({ url: teamUrl(current) });
+    });
+    fragment.querySelector(".remove")!.addEventListener("click", () => this.remove());
+    teamList.append(fragment);
+  }
+
+  get value(): string {
+    return this.input.value.trim();
+  }
+
+  set value(team: string) {
+    this.input.value = team;
+  }
+
+  focus(): void {
+    this.input.focus();
+  }
+
+  show(state: RowState, text: string, offerSignIn = false): void {
+    this.element.className = `team ${state}`;
+    this.status.textContent = text;
+    this.signIn.hidden = !offerSignIn;
+  }
+
+  /** Asks Slack whether this workspace exists and is signed in, and shows the answer. */
+  async check(team: string): Promise<void> {
+    this.show("", "Checking…");
+    try {
+      const status = await checkTeam(team);
+      this.show(status === "signed-in" ? "ok" : "warning", STATUS_TEXT[status], status !== "signed-in");
+    } catch {
+      this.show("warning", "Couldn't reach Slack to check this workspace.");
     }
+  }
 
-    console.log('Checking "' + teamDomain + '"');
-    teamStatus.textContent = "";
-    const xhr = new XMLHttpRequest();
-    const teamUrl = "https://" + teamDomain + ".slack.com/customize/emoji";
-    xhr.open("GET", teamUrl, true);
-    xhr.onload = function () {
-      if (xhr.status === 200) {
-        console.log(xhr.responseURL);
-        if (teamUrl !== xhr.responseURL) {
-          teamStatus.textContent = "Login to team in another tab";
-          teamStatus.style.color = "red";
-          reject(Error("Not Logged in to " + teamUrl));
-        } else {
-          resolve(true);
-        }
-      } else {
-        teamStatus.textContent = "Team Not Found";
-        teamStatus.style.color = "red";
-        reject(Error("Invalid Team"));
-      }
-    };
-    xhr.onerror = function () {
-      reject(Error("There was a network error."));
-    };
-    xhr.send();
+  private remove(): void {
+    this.element.remove();
+    rows.splice(rows.indexOf(this), 1);
+    if (rows.length === 0) addRow();
+  }
+}
+
+async function save(): Promise<void> {
+  const teams: string[] = [];
+  const saved: Array<{ row: TeamRow; team: string }> = [];
+  let invalid = false;
+
+  for (const row of rows) {
+    if (row.value === "") {
+      row.show("", "");
+      continue;
+    }
+    const team = normalizeTeam(row.value);
+    if (!team) {
+      row.show("invalid", "That doesn't look like a workspace address.");
+      invalid = true;
+    } else if (teams.includes(team)) {
+      row.show("", "Already listed above.");
+    } else {
+      row.value = team;
+      teams.push(team);
+      saved.push({ row, team });
+    }
+  }
+
+  if (invalid) {
+    saveStatus.textContent = "Not saved. Fix the workspace marked above first.";
+    return;
+  }
+
+  await setTeams(teams);
+  saveStatus.textContent = "Saved";
+  await Promise.all(saved.map(({ row, team }) => row.check(team)));
+}
+
+async function main(): Promise<void> {
+  const teams = await getTeams();
+  for (const team of teams) addRow(team);
+  if (teams.length === 0) addRow().focus();
+
+  addButton.addEventListener("click", () => addRow().focus());
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    void save();
   });
 }
 
-/**
- * Restores the team list from what is stored in chrome.storage.sync
- */
-function restoreTeams() {
-  chrome.storage.sync.get(
-    {
-      teamDomains: ["your-team-name"],
-    },
-    function (items) {
-      const teamsDiv = document.getElementById("teams");
-
-      if (!teamsDiv) {
-        console.error("No teams div found");
-        return;
-      }
-
-      while (teamsDiv.hasChildNodes()) {
-        const lastTeam = teamsDiv.lastChild;
-        if (lastTeam) {
-          teamsDiv.removeChild(lastTeam);
-        }
-      }
-
-      const teamNames = items.teamDomains;
-      for (let i = 0; i < teamNames.length; i++) {
-        const teamName = teamNames[i];
-        const teamDiv = createTeamDiv(teamName);
-        teamsDiv.append(teamDiv);
-      }
-
-      if (teamsDiv.children.length === 1) {
-        const removeIcon = teamsDiv.getElementsByClassName(
-          "remove-icon"
-        )[0] as HTMLElement;
-        if (removeIcon) {
-          removeIcon.style.display = "none";
-        }
-      }
-    }
-  );
-}
-
-function createTeamDiv(teamName?: string) {
-  const teamDiv = document.createElement("div");
-  const removeIcon = document.createElement("i");
-  const inputBox = document.createElement("input");
-  const slackDotCom = document.createElement("span");
-  const statusBox = document.createElement("span");
-
-  removeIcon.className = "remove-icon fa fa-trash-o";
-  removeIcon.title = "remove this row";
-  removeIcon.addEventListener(
-    "click",
-    function (event) {
-      removeTeamInput(event);
-    },
-    false
-  );
-
-  inputBox.style.textAlign = "center";
-  inputBox.style.width = "30%";
-  inputBox.type = "text";
-  inputBox.className = "team-name";
-  if (teamName !== undefined) {
-    inputBox.value = teamName;
-  }
-
-  slackDotCom.innerHTML = " .slack.com ";
-
-  statusBox.className = "team-status";
-
-  teamDiv.className = "team-input";
-  teamDiv.append(removeIcon);
-  teamDiv.append(" ");
-  teamDiv.append(inputBox);
-  teamDiv.append(slackDotCom);
-  teamDiv.append(statusBox);
-  return teamDiv;
-}
-
-/**
- * Adds a team team input box
- */
-function addTeamInput() {
-  const teamDivs = document.getElementById("teams");
-  const newTeamDiv = createTeamDiv();
-
-  if (!teamDivs) {
-    console.error("No teams div found");
-    return;
-  }
-
-  teamDivs.append(newTeamDiv);
-  const removeIcons = teamDivs.getElementsByClassName("remove-icon");
-  if (removeIcons.length === 2) {
-    const firstIcon = removeIcons[0] as HTMLElement;
-    firstIcon.style.display = "";
-  }
-}
-
-/**
- * Removes the team input box associated with the clicked 'x' icon
- * @param {event} event the click event that triggers this function
- */
-function removeTeamInput(event: Event) {
-  const teamsDiv = document.getElementById("teams");
-  const clickedIcon = event.target;
-
-  if (!(clickedIcon instanceof HTMLElement)) {
-    console.error("Clicked icon is not an HTMLElement");
-    return;
-  }
-
-  const teamInputBox = clickedIcon.parentElement;
-
-  if (!teamsDiv || !teamInputBox) {
-    console.error("No teams div or team input box found");
-    return;
-  }
-  teamsDiv.removeChild(teamInputBox);
-  const removeIcons = teamsDiv.getElementsByClassName("remove-icon");
-  if (removeIcons.length === 1) {
-    const firstIcon = removeIcons[0] as HTMLElement;
-    firstIcon.style.display = "none";
-  }
-}
-
-document.addEventListener("DOMContentLoaded", restoreTeams);
-document.getElementById("save")?.addEventListener("click", saveTeams);
-document.getElementById("add-team")?.addEventListener("click", addTeamInput);
+void main();

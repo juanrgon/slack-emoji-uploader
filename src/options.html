@@ -1,22 +1,35 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Slack Emoji Uploader options</title>
+    <link rel="stylesheet" href="base.css" />
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <form id="form" novalidate>
+      <h1>Your Slack workspaces</h1>
+      <p class="hint">Enter the part of each workspace's address that comes before <code>.slack.com</code>.</p>
 
-<head>
-    <title>Slack Emoji Uploader Options</title>
-    <link rel="stylesheet" href="options.css">
-    <link rel="stylesheet" href="font-awesome-4.7.0/css/font-awesome.min.css">
-</head>
+      <ul id="teams" class="teams"></ul>
 
-<body>
-    <div id='header-msg'>Your Slack Teams:</div>
-    <div id="teams">
-    </div>
-    <div id='button-section'>
-      <button id="add-team">Add Team</button>
-      <button id="save">Save</button>
-      <div style="display:inline" id="settings-status"></div>
-    </div>
+      <div class="actions">
+        <button id="add-team" type="button">Add workspace</button>
+        <button id="save" type="submit" class="primary">Save</button>
+        <span id="save-status" role="status"></span>
+      </div>
+    </form>
+
+    <template id="team-row">
+      <li class="team">
+        <input class="team-name" type="text" aria-label="Workspace" autocomplete="off" spellcheck="false" />
+        <span class="suffix">.slack.com</span>
+        <button class="remove" type="button" aria-label="Remove workspace" title="Remove workspace">&times;</button>
+        <span class="team-status" role="status"></span>
+        <button class="team-sign-in" type="button" hidden>Open Slack</button>
+      </li>
+    </template>
+
     <script src="options.js"></script>
-</body>
-
+  </body>
 </html>

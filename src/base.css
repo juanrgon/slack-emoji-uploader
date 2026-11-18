@@ -1,0 +1,63 @@
+/* Shared by the options page and the "add emoji" window. */
+:root {
+  color-scheme: light dark;
+  --text: #1d1c1d;
+  --muted: #616061;
+  --surface: #ffffff;
+  --border: #c9c9c9;
+  --accent: #007a5a;
+  --accent-text: #ffffff;
+  --danger: #c01343;
+  --success: #007a5a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #e8e8e8;
+    --muted: #ababad;
+    --surface: #1a1d21;
+    --border: #4a4d52;
+    --accent: #2bac76;
+    --accent-text: #0b1a13;
+    --danger: #f2708e;
+    --success: #2bac76;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--text);
+  font: 14px/1.4 system-ui, sans-serif;
+}
+
+button {
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
